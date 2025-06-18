@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeContextProvider } from "./context/ThemeContext";
 import { ProductSearchProvider } from "./context/ProductSearchContext";
@@ -87,24 +87,13 @@ export default function App() {
   );
 }
 
-// Component to conditionally render Footer
+// Component to conditionally render Footer only on Home page
 function FooterWrapper() {
   const location = window.location;
   const pathname = location.pathname;
   
-  // Pages where Footer should NOT be shown
-  const excludeFooterPages = [
-    '/login',
-    '/register',
-    '/checkout',
-    '/cart',
-    '/wishlist',
-    '/seller/dashboard',
-    '/admin',
-    '/products'
-  ];
-  
-  const shouldShowFooter = !excludeFooterPages.includes(pathname);
+  // Show Footer only on Home page
+  const shouldShowFooter = pathname === '/home' || pathname === '/';
   
   return shouldShowFooter ? <Footer /> : null;
 }

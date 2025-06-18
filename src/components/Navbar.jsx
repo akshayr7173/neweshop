@@ -351,9 +351,11 @@ const Navbar = () => {
                   </MenuItem>
                 )}
 
-                <MenuItem onClick={() => { navigate("/profile"); handleMenuClose(); }}>
-                  Edit Profile
-                </MenuItem>
+                {!isAdmin && (
+                  <MenuItem onClick={() => { navigate("/profile"); handleMenuClose(); }}>
+                    Edit Profile
+                  </MenuItem>
+                )}
 
                 {isCustomer && (
                   <>

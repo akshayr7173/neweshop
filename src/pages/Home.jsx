@@ -38,7 +38,9 @@ const HeroSection = styled(Box)(({ theme }) => ({
   marginBottom: theme.spacing(6),
   borderRadius: '20px',
   overflow: 'hidden',
-  boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
+  boxShadow: theme.palette.mode === 'dark'
+    ? '0 10px 40px rgba(0, 0, 0, 0.3)'
+    : '0 10px 40px rgba(0, 0, 0, 0.1)',
   '& .slick-dots': {
     bottom: '20px',
     '& li button:before': {
@@ -80,7 +82,9 @@ const SectionTitle = styled(Typography)(({ theme }) => ({
 }));
 
 const FlashSaleContainer = styled(Box)(({ theme }) => ({
-  background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
+  background: theme.palette.mode === 'dark'
+    ? 'linear-gradient(135deg, #2d1b0e, #3d2817)'
+    : 'linear-gradient(135deg, #fef3c7, #fde68a)',
   borderRadius: '20px',
   padding: theme.spacing(3),
   marginBottom: theme.spacing(4),
@@ -102,15 +106,18 @@ const FlashSaleContainer = styled(Box)(({ theme }) => ({
 const CategoryFilter = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
   borderRadius: '16px',
-  border: '1px solid rgba(0, 0, 0, 0.08)',
-  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+  border: `1px solid ${theme.palette.divider}`,
+  boxShadow: theme.palette.mode === 'dark'
+    ? '0 2px 8px rgba(0, 0, 0, 0.3)'
+    : '0 2px 8px rgba(0, 0, 0, 0.04)',
   marginBottom: theme.spacing(3),
+  backgroundColor: theme.palette.background.paper,
 }));
 
 const StyledSelect = styled(Select)(({ theme }) => ({
   borderRadius: '12px',
   '& .MuiOutlinedInput-notchedOutline': {
-    borderColor: 'rgba(0, 0, 0, 0.12)',
+    borderColor: theme.palette.divider,
   },
   '&:hover .MuiOutlinedInput-notchedOutline': {
     borderColor: theme.palette.primary.main,
@@ -122,11 +129,16 @@ const CustomArrow = styled(IconButton)(({ theme }) => ({
   top: '50%',
   transform: 'translateY(-50%)',
   zIndex: 2,
-  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  backgroundColor: theme.palette.mode === 'dark'
+    ? 'rgba(26, 26, 26, 0.9)'
+    : 'rgba(255, 255, 255, 0.9)',
   backdropFilter: 'blur(10px)',
   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+  color: theme.palette.text.primary,
   '&:hover': {
-    backgroundColor: 'rgba(255, 255, 255, 1)',
+    backgroundColor: theme.palette.mode === 'dark'
+      ? 'rgba(26, 26, 26, 1)'
+      : 'rgba(255, 255, 255, 1)',
     transform: 'translateY(-50%) scale(1.1)',
   }
 }));
@@ -150,7 +162,7 @@ const Home = () => {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [page, setPage] = useState(1);
-  const pageSize = 8;
+  const pageSize = 6; // Changed to 6 products per page
 
   const BASE_URL = "https://localhost:7040";
 
@@ -177,7 +189,7 @@ const Home = () => {
     try {
       let url = `${BASE_URL}/api/Product/Approved?page=${page}&pageSize=${pageSize}`;
       if (selectedCategory) {
-        url += `&category=${selectedCategory}`;
+        url += `&category=${encodeURIComponent(selectedCategory)}`;
       }
       const res = await fetch(url);
       const data = await res.json();
@@ -200,7 +212,13 @@ const Home = () => {
 
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
-    setPage(1);
+    setPage(1); // Reset to first page when category changes
+  };
+
+  const handlePageChange = (event, value) => {
+    setPage(value);
+    // Scroll to top when page changes
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const sliderImages = [banner1, banner2, banner3];
@@ -263,7 +281,7 @@ const Home = () => {
                 src={img}
                 alt={`banner-${index}`}
                 onError={(e) => {
-                  e.target.src = "/assets/default.png";
+                  e.target.src = "/src/assets/default.png";
                 }}
               />
             </Box>
@@ -355,7 +373,7 @@ const Home = () => {
         {/* Products Grid */}
         <Grid container spacing={3}>
           {allProducts.map((product) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
+            <Grid item xs={12} sm={6} md={4} lg={4} key={product.id}>
               <ProductCard product={product} />
             </Grid>
           ))}
@@ -381,9 +399,11 @@ const Home = () => {
             <Pagination
               count={Math.ceil(totalProducts / pageSize)}
               page={page}
-              onChange={(e, val) => setPage(val)}
+              onChange={handlePageChange}
               color="primary"
               size="large"
+              showFirstButton
+              showLastButton
             />
           </Box>
         )}
