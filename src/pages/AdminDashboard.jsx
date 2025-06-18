@@ -52,17 +52,17 @@ const AdminDashboard = () => {
           break;
         }
         case 1: {
-          const res = await axios.get("https://localhost:7040/api/User", config);
+          const res = await axios.get("https://localhost:7040/api/Admin/AllUsers", config);
           setUsers(res.data);
           break;
         }
         case 2: {
-          const res = await axios.get("https://localhost:7040/api/User/Sellers", config);
+          const res = await axios.get("https://localhost:7040/api/Admin/AllSellers", config);
           setSellers(res.data);
           break;
         }
         case 3: {
-          const res = await axios.get("https://localhost:7040/api/Order", config);
+          const res = await axios.get("https://localhost:7040/api/Order/my", config);
           setOrders(res.data);
           break;
         }

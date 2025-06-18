@@ -26,14 +26,19 @@ const StyledCard = styled(Card)(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
   borderRadius: '16px',
-  border: '1px solid rgba(0, 0, 0, 0.08)',
-  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+  border: `1px solid ${theme.palette.divider}`,
+  boxShadow: theme.palette.mode === 'dark' 
+    ? '0 2px 8px rgba(0, 0, 0, 0.3)' 
+    : '0 2px 8px rgba(0, 0, 0, 0.04)',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   overflow: 'hidden',
   position: 'relative',
+  backgroundColor: theme.palette.background.paper,
   '&:hover': {
     transform: 'translateY(-8px)',
-    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.12)',
+    boxShadow: theme.palette.mode === 'dark'
+      ? '0 20px 40px rgba(0, 0, 0, 0.4)'
+      : '0 20px 40px rgba(0, 0, 0, 0.12)',
     '& .product-image': {
       transform: 'scale(1.05)',
     },
@@ -64,13 +69,18 @@ const QuickActions = styled(Box)(({ theme }) => ({
 }));
 
 const ActionButton = styled(IconButton)(({ theme }) => ({
-  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  backgroundColor: theme.palette.mode === 'dark' 
+    ? 'rgba(26, 26, 26, 0.9)' 
+    : 'rgba(255, 255, 255, 0.9)',
   backdropFilter: 'blur(10px)',
   width: 40,
   height: 40,
   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+  color: theme.palette.text.primary,
   '&:hover': {
-    backgroundColor: 'rgba(255, 255, 255, 1)',
+    backgroundColor: theme.palette.mode === 'dark' 
+      ? 'rgba(26, 26, 26, 1)' 
+      : 'rgba(255, 255, 255, 1)',
     transform: 'scale(1.1)',
   }
 }));
@@ -141,6 +151,24 @@ const ProductCard = ({ product }) => {
   // Calculate discount percentage (mock data)
   const originalPrice = product.price * 1.2; // Assuming 20% discount
   const discountPercent = Math.round(((originalPrice - product.price) / originalPrice) * 100);
+
+  // Fix image URL - handle both relative and absolute URLs
+  const getImageUrl = (imageUrl) => {
+    if (!imageUrl) return "/src/assets/default.png";
+    
+    // If it's already a full URL, return as is
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return imageUrl;
+    }
+    
+    // If it's a relative path, construct the full URL
+    if (imageUrl.startsWith('/')) {
+      return `https://localhost:7040${imageUrl}`;
+    }
+    
+    // If it doesn't start with /, add it
+    return `https://localhost:7040/${imageUrl}`;
+  };
 
   const showSnackbar = (message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
@@ -232,9 +260,12 @@ const ProductCard = ({ product }) => {
           <ProductImage
             className="product-image"
             component="img"
-            image={product.imageUrl || "/assets/default.png"}
+            image={getImageUrl(product.imageUrl)}
             alt={product.title || product.name}
             onClick={() => navigate(`/product/${product.id}`)}
+            onError={(e) => {
+              e.target.src = "/src/assets/default.png";
+            }}
           />
           
           <QuickActions className="quick-actions">
@@ -271,6 +302,7 @@ const ProductCard = ({ product }) => {
               WebkitBoxOrient: 'vertical',
               lineHeight: 1.4,
               cursor: 'pointer',
+              color: 'text.primary',
             }}
             onClick={() => navigate(`/product/${product.id}`)}
           >

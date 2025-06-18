@@ -15,7 +15,9 @@ import {
   ListItem,
   ListItemText,
   Avatar,
-  Chip
+  Chip,
+  Switch,
+  FormControlLabel
 } from "@mui/material";
 import {
   ShoppingCart,
@@ -24,35 +26,47 @@ import {
   Search,
   Store,
   Dashboard,
-  AdminPanelSettings
+  AdminPanelSettings,
+  DarkMode,
+  LightMode,
+  Home as HomeIcon
 } from "@mui/icons-material";
 import { styled, alpha } from "@mui/material/styles";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import { ProductSearchContext } from "../context/ProductSearchContext";
 import Fuse from "fuse.js";
 import axios from "axios";
 import { toast } from "react-toastify";
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
-  background: 'rgba(255, 255, 255, 0.95)',
+  background: theme.palette.mode === 'dark' 
+    ? 'rgba(26, 26, 26, 0.95)' 
+    : 'rgba(255, 255, 255, 0.95)',
   backdropFilter: 'blur(20px)',
-  borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
-  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-  color: '#1a1a1a',
+  borderBottom: `1px solid ${theme.palette.divider}`,
+  boxShadow: theme.palette.mode === 'dark'
+    ? '0 4px 20px rgba(0, 0, 0, 0.3)'
+    : '0 4px 20px rgba(0, 0, 0, 0.08)',
+  color: theme.palette.text.primary,
 }));
 
 const SearchWrapper = styled("div")(({ theme }) => ({
   position: "relative",
   borderRadius: '12px',
-  backgroundColor: alpha('#f8fafc', 0.8),
-  border: '1px solid rgba(0, 0, 0, 0.08)',
+  backgroundColor: theme.palette.mode === 'dark'
+    ? alpha('#2d2d2d', 0.8)
+    : alpha('#f8fafc', 0.8),
+  border: `1px solid ${theme.palette.divider}`,
   "&:hover": {
-    backgroundColor: alpha('#f1f5f9', 0.9),
-    borderColor: 'rgba(0, 0, 0, 0.12)',
+    backgroundColor: theme.palette.mode === 'dark'
+      ? alpha('#3d3d3d', 0.9)
+      : alpha('#f1f5f9', 0.9),
+    borderColor: theme.palette.divider,
   },
   "&:focus-within": {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.palette.background.paper,
     borderColor: theme.palette.primary.main,
     boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.1)}`,
   },
@@ -66,9 +80,10 @@ const SearchInput = styled(InputBase)(({ theme }) => ({
   padding: theme.spacing(1.5, 2),
   width: "100%",
   fontSize: '0.95rem',
+  color: theme.palette.text.primary,
   '& .MuiInputBase-input': {
     '&::placeholder': {
-      color: '#64748b',
+      color: theme.palette.text.secondary,
       opacity: 1,
     }
   }
@@ -92,6 +107,7 @@ const StyledIconButton = styled(IconButton)(({ theme }) => ({
   borderRadius: '12px',
   padding: '10px',
   transition: 'all 0.2s ease',
+  color: theme.palette.text.primary,
   '&:hover': {
     backgroundColor: alpha(theme.palette.primary.main, 0.08),
     transform: 'translateY(-1px)',
@@ -104,6 +120,7 @@ const StyledButton = styled(Button)(({ theme }) => ({
   fontWeight: 500,
   padding: '8px 16px',
   transition: 'all 0.2s ease',
+  color: theme.palette.text.primary,
   '&:hover': {
     transform: 'translateY(-1px)',
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
@@ -118,16 +135,30 @@ const SearchResults = styled(Paper)(({ theme }) => ({
   zIndex: 1000,
   marginTop: '4px',
   borderRadius: '12px',
-  border: '1px solid rgba(0, 0, 0, 0.08)',
-  boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
+  border: `1px solid ${theme.palette.divider}`,
+  boxShadow: theme.palette.mode === 'dark'
+    ? '0 10px 40px rgba(0, 0, 0, 0.5)'
+    : '0 10px 40px rgba(0, 0, 0, 0.1)',
   maxHeight: 300,
   overflowY: "auto",
-  background: 'rgba(255, 255, 255, 0.98)',
+  background: theme.palette.background.paper,
   backdropFilter: 'blur(20px)',
+}));
+
+const ThemeToggle = styled(IconButton)(({ theme }) => ({
+  borderRadius: '12px',
+  padding: '8px',
+  transition: 'all 0.2s ease',
+  color: theme.palette.text.primary,
+  '&:hover': {
+    backgroundColor: alpha(theme.palette.primary.main, 0.08),
+    transform: 'rotate(180deg)',
+  }
 }));
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+  const { darkMode, toggleDarkMode } = useTheme();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const handleMenuOpen = (e) => setAnchorEl(e.currentTarget);
@@ -149,7 +180,7 @@ const Navbar = () => {
       });
       toast.success("You are now a seller!");
       handleMenuClose();
-      window.location.reload(); // refresh to reflect new role
+      window.location.reload();
     } catch (error) {
       toast.error("Failed to become a seller.");
     }
@@ -204,7 +235,7 @@ const Navbar = () => {
         <Box sx={{ position: "relative", flex: 1, maxWidth: "500px", mx: 3 }}>
           <SearchWrapper>
             <Box sx={{ display: 'flex', alignItems: 'center', pl: 1 }}>
-              <Search sx={{ color: '#64748b', mr: 1 }} />
+              <Search sx={{ color: 'text.secondary', mr: 1 }} />
               <SearchInput
                 placeholder="Search for products, brands and more..."
                 value={query}
@@ -226,7 +257,7 @@ const Navbar = () => {
                       primary={product.name || product.title}
                       secondary={`₹${product.price} • ${product.category}`}
                       primaryTypographyProps={{ fontSize: '0.9rem', fontWeight: 500 }}
-                      secondaryTypographyProps={{ fontSize: '0.8rem', color: '#64748b' }}
+                      secondaryTypographyProps={{ fontSize: '0.8rem', color: 'text.secondary' }}
                     />
                   </ListItem>
                 ))}
@@ -236,6 +267,10 @@ const Navbar = () => {
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <ThemeToggle onClick={toggleDarkMode}>
+            {darkMode ? <LightMode /> : <DarkMode />}
+          </ThemeToggle>
+
           <StyledButton onClick={() => navigate("/")} sx={{ display: { xs: 'none', md: 'flex' } }}>
             Home
           </StyledButton>
@@ -291,14 +326,15 @@ const Navbar = () => {
                 PaperProps={{
                   sx: {
                     borderRadius: '12px',
-                    border: '1px solid rgba(0, 0, 0, 0.08)',
+                    border: '1px solid',
+                    borderColor: 'divider',
                     boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
                     mt: 1,
                     minWidth: 200,
                   }
                 }}
               >
-                <Box sx={{ px: 2, py: 1, borderBottom: '1px solid rgba(0, 0, 0, 0.08)' }}>
+                <Box sx={{ px: 2, py: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                     {user.name}
                     {getRoleChip()}
@@ -307,6 +343,13 @@ const Navbar = () => {
                     {user.email}
                   </Typography>
                 </Box>
+
+                {isAdmin && (
+                  <MenuItem onClick={() => { navigate("/home"); handleMenuClose(); }}>
+                    <HomeIcon sx={{ mr: 1 }} />
+                    Take a Look at Your MyShop Website
+                  </MenuItem>
+                )}
 
                 <MenuItem onClick={() => { navigate("/profile"); handleMenuClose(); }}>
                   Edit Profile
