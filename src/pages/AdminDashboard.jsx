@@ -102,8 +102,35 @@ const AdminDashboard = () => {
   };
 
   useEffect(() => {
+    fetchAllData();
+  }, []);
+
+  useEffect(() => {
     fetchData();
   }, [tab]);
+
+  const fetchAllData = async () => {
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+
+    try {
+      // Fetch all data for stats
+      const [pendingRes, approvedRes, usersRes, ordersRes] = await Promise.all([
+        axios.get("https://localhost:7040/api/Product/pending", config),
+        axios.get("https://localhost:7040/api/Product/Approved?page=1&pageSize=1000", config),
+        axios.get("https://localhost:7040/api/Admin/AllUsers", config),
+        axios.get("https://localhost:7040/api/Order", config)
+      ]);
+
+      setPendingProducts(pendingRes.data);
+      setApprovedProducts(approvedRes.data.products || approvedRes.data);
+      setUsers(usersRes.data);
+      setOrders(ordersRes.data);
+    } catch (err) {
+      console.error("Error fetching dashboard data", err);
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -120,7 +147,7 @@ const AdminDashboard = () => {
           break;
         }
         case 1: {
-          const res = await axios.get("https://localhost:7040/api/Product/Approved", config);
+          const res = await axios.get("https://localhost:7040/api/Product/Approved?page=1&pageSize=1000", config);
           setApprovedProducts(res.data.products || res.data);
           break;
         }
@@ -162,6 +189,7 @@ const AdminDashboard = () => {
       });
       setSuccess("Product approved successfully!");
       fetchData();
+      fetchAllData(); // Refresh stats
     } catch (err) {
       console.error("Error approving product", err);
       setError("Failed to approve product");
@@ -175,6 +203,7 @@ const AdminDashboard = () => {
       });
       setSuccess("Product rejected successfully!");
       fetchData();
+      fetchAllData(); // Refresh stats
     } catch (err) {
       console.error("Error rejecting product", err);
       setError("Failed to reject product");
@@ -439,6 +468,11 @@ const AdminDashboard = () => {
                               <Typography variant="body2" color="text.secondary">
                                 Category: {product.category}
                               </Typography>
+                              {product.quantity !== undefined && (
+                                <Typography variant="body2" color="text.secondary">
+                                  Stock: {product.quantity}
+                                </Typography>
+                              )}
                             </CardContent>
                           </ProductCard>
                         </Grid>

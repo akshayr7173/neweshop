@@ -113,6 +113,14 @@ const DiscountChip = styled(Chip)(({ theme }) => ({
   fontWeight: 600,
 }));
 
+const OutOfStockChip = styled(Chip)(({ theme }) => ({
+  backgroundColor: theme.palette.error.main,
+  color: 'white',
+  fontSize: '0.75rem',
+  height: 24,
+  fontWeight: 600,
+}));
+
 const BuyButton = styled(Button)(({ theme }) => ({
   borderRadius: '10px',
   textTransform: 'none',
@@ -123,6 +131,12 @@ const BuyButton = styled(Button)(({ theme }) => ({
     background: 'linear-gradient(135deg, #0284c7, #c026d3)',
     transform: 'translateY(-1px)',
     boxShadow: '0 6px 20px rgba(14, 165, 233, 0.4)',
+  },
+  '&:disabled': {
+    background: '#e5e7eb',
+    color: '#9ca3af',
+    transform: 'none',
+    boxShadow: 'none',
   }
 }));
 
@@ -138,6 +152,12 @@ const AddToCartButton = styled(Button)(({ theme }) => ({
     color: 'white',
     transform: 'translateY(-1px)',
     boxShadow: '0 6px 20px rgba(14, 165, 233, 0.3)',
+  },
+  '&:disabled': {
+    borderColor: '#e5e7eb',
+    color: '#9ca3af',
+    transform: 'none',
+    boxShadow: 'none',
   }
 }));
 
@@ -147,6 +167,9 @@ const ProductCard = ({ product }) => {
   
   const userId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
+
+  // Check if product is out of stock
+  const isOutOfStock = product.quantity === 0;
 
   // Calculate discount percentage (mock data)
   const originalPrice = product.price * 1.2; // Assuming 20% discount
@@ -214,6 +237,11 @@ const ProductCard = ({ product }) => {
       return;
     }
 
+    if (isOutOfStock) {
+      toast.error("Product is out of stock");
+      return;
+    }
+
     try {
       await api.post("/Cart/add", {
         userId: parseInt(userId),
@@ -237,6 +265,11 @@ const ProductCard = ({ product }) => {
     
     if (!userId) {
       navigate("/login");
+      return;
+    }
+
+    if (isOutOfStock) {
+      toast.error("Product is out of stock");
       return;
     }
 
@@ -283,16 +316,22 @@ const ProductCard = ({ product }) => {
               <FavoriteBorderIcon />
             )}
           </ActionButton>
-          <ActionButton onClick={handleAddToCart}>
-            <ShoppingCartIcon />
-          </ActionButton>
+          {!isOutOfStock && (
+            <ActionButton onClick={handleAddToCart}>
+              <ShoppingCartIcon />
+            </ActionButton>
+          )}
         </QuickActions>
 
-        {discountPercent > 0 && (
+        {isOutOfStock ? (
+          <Box sx={{ position: 'absolute', top: 12, left: 12 }}>
+            <OutOfStockChip label="Out of Stock" size="small" />
+          </Box>
+        ) : discountPercent > 0 ? (
           <Box sx={{ position: 'absolute', top: 12, left: 12 }}>
             <DiscountChip label={`${discountPercent}% OFF`} size="small" />
           </Box>
-        )}
+        ) : null}
       </Box>
 
       <CardContent sx={{ flexGrow: 1, p: 2 }}>
@@ -325,38 +364,65 @@ const ProductCard = ({ product }) => {
 
         <PriceBox>
           <CurrentPrice>₹{product.price}</CurrentPrice>
-          {discountPercent > 0 && (
+          {!isOutOfStock && discountPercent > 0 && (
             <OriginalPrice>₹{Math.round(originalPrice)}</OriginalPrice>
           )}
         </PriceBox>
 
-        {product.category && (
-          <Chip 
-            label={product.category} 
-            size="small" 
-            variant="outlined"
-            sx={{ mt: 1, fontSize: '0.75rem' }}
-          />
-        )}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+          {product.category && (
+            <Chip 
+              label={product.category} 
+              size="small" 
+              variant="outlined"
+              sx={{ fontSize: '0.75rem' }}
+            />
+          )}
+          {product.quantity !== undefined && (
+            <Typography variant="caption" color="text.secondary">
+              Stock: {product.quantity}
+            </Typography>
+          )}
+        </Box>
       </CardContent>
 
       <CardActions sx={{ p: 2, pt: 0, gap: 1 }}>
-        <BuyButton
-          variant="contained"
-          startIcon={<BoltIcon />}
-          onClick={handleBuyNow}
-          fullWidth
-        >
-          Buy Now
-        </BuyButton>
-        <AddToCartButton
-          variant="outlined"
-          startIcon={<ShoppingCartIcon />}
-          onClick={handleAddToCart}
-          fullWidth
-        >
-          Add to Cart
-        </AddToCartButton>
+        {isOutOfStock ? (
+          <>
+            <Button
+              variant="outlined"
+              startIcon={<FavoriteBorderIcon />}
+              onClick={handleWishlistToggle}
+              fullWidth
+              sx={{
+                borderRadius: '10px',
+                textTransform: 'none',
+                fontWeight: 500,
+              }}
+            >
+              Add to Wishlist
+            </Button>
+          </>
+        ) : (
+          <>
+            <BuyButton
+              variant="contained"
+              startIcon={<BoltIcon />}
+              onClick={handleBuyNow}
+              fullWidth
+            >
+              Buy Now
+            </BuyButton>
+            <AddToCartButton
+              variant="outlined"
+              startIcon={<ShoppingCartIcon />}
+              onClick={handleAddToCart}
+              fullWidth
+            >
+              Add to Cart
+            </AddToCartButton>
+          </>
+        )}
       </CardActions>
     </StyledCard>
   );

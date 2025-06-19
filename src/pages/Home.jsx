@@ -6,7 +6,6 @@ import {
   Container,
   Select,
   MenuItem,
-  Pagination,
   Paper,
   Chip,
   Button,
@@ -158,22 +157,20 @@ const NextArrow = ({ onClick }) => (
 const Home = () => {
   const [flashProducts, setFlashProducts] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
-  const [totalProducts, setTotalProducts] = useState(0);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [page, setPage] = useState(1);
-  const pageSize = 6; // Changed to 6 products per page
 
   const BASE_URL = "https://localhost:7040";
 
   useEffect(() => {
     fetchFlashProducts();
     fetchCategories();
+    fetchAllProducts();
   }, []);
 
   useEffect(() => {
     fetchAllProducts();
-  }, [page, selectedCategory]);
+  }, [selectedCategory]);
 
   const fetchFlashProducts = async () => {
     try {
@@ -187,14 +184,13 @@ const Home = () => {
 
   const fetchAllProducts = async () => {
     try {
-      let url = `${BASE_URL}/api/Product/Approved?page=${page}&pageSize=${pageSize}`;
+      let url = `${BASE_URL}/api/Product/Approved?page=1&pageSize=1000`;
       if (selectedCategory) {
         url += `&category=${encodeURIComponent(selectedCategory)}`;
       }
       const res = await fetch(url);
       const data = await res.json();
       setAllProducts(data.products || []);
-      setTotalProducts(data.total || 0);
     } catch (err) {
       console.error("Error loading all products", err);
     }
@@ -212,13 +208,6 @@ const Home = () => {
 
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
-    setPage(1); // Reset to first page when category changes
-  };
-
-  const handlePageChange = (event, value) => {
-    setPage(value);
-    // Scroll to top when page changes
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const sliderImages = [banner1, banner2, banner3];
@@ -365,7 +354,7 @@ const Home = () => {
               ))}
             </StyledSelect>
             <Typography variant="caption" color="text.secondary">
-              {totalProducts} products found
+              {allProducts.length} products found
             </Typography>
           </Box>
         </CategoryFilter>
@@ -378,35 +367,6 @@ const Home = () => {
             </Grid>
           ))}
         </Grid>
-
-        {/* Pagination */}
-        {totalProducts > pageSize && (
-          <Box sx={{ 
-            mt: 6, 
-            display: "flex", 
-            justifyContent: "center",
-            '& .MuiPagination-root': {
-              '& .MuiPaginationItem-root': {
-                borderRadius: '12px',
-                fontWeight: 500,
-                '&.Mui-selected': {
-                  background: 'linear-gradient(135deg, #0ea5e9, #d946ef)',
-                  color: 'white',
-                }
-              }
-            }
-          }}>
-            <Pagination
-              count={Math.ceil(totalProducts / pageSize)}
-              page={page}
-              onChange={handlePageChange}
-              color="primary"
-              size="large"
-              showFirstButton
-              showLastButton
-            />
-          </Box>
-        )}
       </Box>
     </Container>
   );

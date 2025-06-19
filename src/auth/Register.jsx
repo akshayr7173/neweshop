@@ -98,9 +98,11 @@ export default function Register() {
     name: "",
     email: "",
     password: "",
+    confirmPassword: "",
     address: ""
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -112,14 +114,45 @@ export default function Register() {
     if (error) setError(""); // Clear error when user starts typing
   };
 
+  const validateForm = () => {
+    if (!form.name || !form.email || !form.password || !form.confirmPassword || !form.address) {
+      setError("All fields are required");
+      return false;
+    }
+
+    if (form.password !== form.confirmPassword) {
+      setError("Passwords do not match");
+      return false;
+    }
+
+    if (form.password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) {
+      setError("Please enter a valid email address");
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
     setLoading(true);
     setError("");
     setSuccess("");
 
     try {
-      await api.post("/Auth/register", form);
+      const { confirmPassword, ...registerData } = form;
+      await api.post("/Auth/register", registerData);
       setSuccess("Registration successful! Please login to continue.");
       setTimeout(() => {
         navigate("/login");
@@ -217,6 +250,41 @@ export default function Register() {
                         edge="end"
                       >
                         {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <StyledTextField
+                label="Confirm Password"
+                name="confirmPassword"
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={form.confirmPassword}
+                onChange={handleChange}
+                fullWidth
+                required
+                error={form.confirmPassword && form.password !== form.confirmPassword}
+                helperText={
+                  form.confirmPassword && form.password !== form.confirmPassword
+                    ? "Passwords do not match"
+                    : ""
+                }
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Lock sx={{ color: 'text.secondary' }} />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        edge="end"
+                      >
+                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </InputAdornment>
                   ),

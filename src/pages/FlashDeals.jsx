@@ -109,30 +109,58 @@ const CountdownTimer = styled(Box)(({ theme }) => ({
   marginBottom: theme.spacing(2),
 }));
 
+const TimerBox = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(0.5),
+  backgroundColor: 'rgba(220, 38, 38, 0.1)',
+  padding: theme.spacing(0.5, 1),
+  borderRadius: '8px',
+  minWidth: '60px',
+  justifyContent: 'center',
+}));
+
 const FlashDeals = () => {
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState({
     hours: 23,
-    minutes: 45,
-    seconds: 30
+    minutes: 59,
+    seconds: 59
   });
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchDeals();
     
-    // Countdown timer
+    // Countdown timer - updates every second
     const timer = setInterval(() => {
       setTimeLeft(prev => {
-        if (prev.seconds > 0) {
-          return { ...prev, seconds: prev.seconds - 1 };
-        } else if (prev.minutes > 0) {
-          return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
-        } else if (prev.hours > 0) {
-          return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
+        let newHours = prev.hours;
+        let newMinutes = prev.minutes;
+        let newSeconds = prev.seconds;
+
+        if (newSeconds > 0) {
+          newSeconds--;
+        } else if (newMinutes > 0) {
+          newMinutes--;
+          newSeconds = 59;
+        } else if (newHours > 0) {
+          newHours--;
+          newMinutes = 59;
+          newSeconds = 59;
+        } else {
+          // Reset to 24 hours when timer reaches 0
+          newHours = 23;
+          newMinutes = 59;
+          newSeconds = 59;
         }
-        return prev;
+
+        return {
+          hours: newHours,
+          minutes: newMinutes,
+          seconds: newSeconds
+        };
       });
     }, 1000);
 
@@ -167,7 +195,7 @@ const FlashDeals = () => {
       <SectionHeader>
         <SectionTitle>
           <LocalFireDepartment sx={{ color: '#dc2626' }} />
-          🔥 Trending Deals
+          🔥 Flash Deals
         </SectionTitle>
         <Button 
           endIcon={<ArrowForward />}
@@ -177,17 +205,37 @@ const FlashDeals = () => {
             '&:hover': { bgcolor: 'rgba(220, 38, 38, 0.08)' }
           }}
         >
-          View All Trending
+          View All Deals
         </Button>
       </SectionHeader>
 
       <CountdownTimer>
         <Timer sx={{ color: '#dc2626' }} />
-        <Typography variant="body2" sx={{ fontWeight: 600, color: '#dc2626' }}>
-          Ends in: {String(timeLeft.hours).padStart(2, '0')}:
-          {String(timeLeft.minutes).padStart(2, '0')}:
-          {String(timeLeft.seconds).padStart(2, '0')}
+        <Typography variant="body2" sx={{ fontWeight: 600, color: '#dc2626', mr: 1 }}>
+          Ends in:
         </Typography>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <TimerBox>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: '#dc2626' }}>
+              {String(timeLeft.hours).padStart(2, '0')}
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#dc2626' }}>h</Typography>
+          </TimerBox>
+          <Typography variant="body2" sx={{ color: '#dc2626', alignSelf: 'center' }}>:</Typography>
+          <TimerBox>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: '#dc2626' }}>
+              {String(timeLeft.minutes).padStart(2, '0')}
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#dc2626' }}>m</Typography>
+          </TimerBox>
+          <Typography variant="body2" sx={{ color: '#dc2626', alignSelf: 'center' }}>:</Typography>
+          <TimerBox>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: '#dc2626' }}>
+              {String(timeLeft.seconds).padStart(2, '0')}
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#dc2626' }}>s</Typography>
+          </TimerBox>
+        </Box>
       </CountdownTimer>
 
       <Grid container spacing={3}>
