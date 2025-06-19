@@ -181,7 +181,7 @@ const ProductCard = ({ product }) => {
     try {
       if (isWishlisted) {
         // Remove from wishlist
-        await api.delete(`/Wishlist/Remove/${product.id}`, {
+        await api.delete("/Wishlist/Remove/${product.id}", {
           headers: { Authorization: `Bearer ${token}` }
         });
         setIsWishlisted(false);
@@ -242,16 +242,15 @@ const ProductCard = ({ product }) => {
 
     // Add to cart first, then navigate to checkout
     try {
-      await api.post("/Cart/add", {
-        userId: parseInt(userId),
+     await api.post("/Cart/add", {
         productId: product.id,
         quantity: 1
       }, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      headers: { 
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+     }});
+
       // Navigate directly to checkout
       navigate("/checkout");
     } catch (err) {

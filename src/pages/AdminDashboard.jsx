@@ -115,7 +115,7 @@ const AdminDashboard = () => {
 
       switch (tab) {
         case 0: {
-          const res = await axios.get("https://localhost:7040/api/Admin/UnapprovedProducts", config);
+          const res = await axios.get("https://localhost:7040/api/Product/pending", config);
           setPendingProducts(res.data);
           break;
         }
