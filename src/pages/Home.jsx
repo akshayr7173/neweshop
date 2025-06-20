@@ -16,7 +16,6 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import ProductCard from "../pages/ProductCard";
-import FlashDeals from "../pages/FlashDeals";
 import {
   TrendingUp,
   LocalOffer,
@@ -24,6 +23,7 @@ import {
   ArrowForward,
   ChevronLeft,
   ChevronRight,
+  Timer,
 } from "@mui/icons-material";
 
 // Banner Images
@@ -100,6 +100,46 @@ const FlashSaleContainer = styled(Box)(({ theme }) => ({
   }
 }));
 
+const FlashDealsContainer = styled(Box)(({ theme }) => ({
+  background: 'linear-gradient(135deg, #fee2e2, #fecaca)',
+  borderRadius: '20px',
+  padding: theme.spacing(4),
+  marginBottom: theme.spacing(4),
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    background: 'radial-gradient(circle at 20% 80%, rgba(239, 68, 68, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(239, 68, 68, 0.1) 0%, transparent 50%)',
+    pointerEvents: 'none',
+  }
+}));
+
+const CountdownTimer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(1),
+  padding: theme.spacing(1, 2),
+  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+  borderRadius: '12px',
+  marginBottom: theme.spacing(2),
+}));
+
+const TimerBox = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(0.5),
+  backgroundColor: 'rgba(220, 38, 38, 0.1)',
+  padding: theme.spacing(0.5, 1),
+  borderRadius: '8px',
+  minWidth: '60px',
+  justifyContent: 'center',
+}));
+
 const CategoryFilter = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
   borderRadius: '16px',
@@ -150,18 +190,58 @@ const NextArrow = ({ onClick }) => (
 
 const Home = () => {
   const [flashProducts, setFlashProducts] = useState([]);
+  const [trendingProducts, setTrendingProducts] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [wishlist, setWishlist] = useState([]);
+  const [timeLeft, setTimeLeft] = useState({
+    hours: 23,
+    minutes: 59,
+    seconds: 59
+  });
 
   const BASE_URL = "https://localhost:7040";
 
   useEffect(() => {
     fetchFlashProducts();
+    fetchTrendingProducts();
     fetchCategories();
     fetchAllProducts();
     fetchWishlist();
+    
+    // Countdown timer - updates every second
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        let newHours = prev.hours;
+        let newMinutes = prev.minutes;
+        let newSeconds = prev.seconds;
+
+        if (newSeconds > 0) {
+          newSeconds--;
+        } else if (newMinutes > 0) {
+          newMinutes--;
+          newSeconds = 59;
+        } else if (newHours > 0) {
+          newHours--;
+          newMinutes = 59;
+          newSeconds = 59;
+        } else {
+          // Reset to 24 hours when timer reaches 0
+          newHours = 23;
+          newMinutes = 59;
+          newSeconds = 59;
+        }
+
+        return {
+          hours: newHours,
+          minutes: newMinutes,
+          seconds: newSeconds
+        };
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
@@ -175,6 +255,16 @@ const Home = () => {
       setFlashProducts(data);
     } catch (err) {
       console.error("Error loading flash products", err);
+    }
+  };
+
+  const fetchTrendingProducts = async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/Product/Trending`);
+      const data = await res.json();
+      setTrendingProducts(data);
+    } catch (err) {
+      console.error("Error loading trending products", err);
     }
   };
 
@@ -321,10 +411,75 @@ const Home = () => {
         </FlashSaleContainer>
       )}
 
-      {/* Flash Deals Component */}
-      <Box sx={{ mb: 4 }}>
-        <FlashDeals />
-      </Box>
+      {/* Flash Deals with Timer */}
+      {trendingProducts.length > 0 && (
+        <FlashDealsContainer className="animate-fade-in-up">
+          <SectionHeader>
+            <SectionTitle sx={{ color: '#dc2626' }}>
+              🔥 Flash Deals
+            </SectionTitle>
+            <Button 
+              endIcon={<ArrowForward />}
+              sx={{ 
+                color: '#dc2626',
+                fontWeight: 600,
+                '&:hover': { bgcolor: 'rgba(220, 38, 38, 0.08)' }
+              }}
+            >
+              View All Deals
+            </Button>
+          </SectionHeader>
+
+          <CountdownTimer>
+            <Timer sx={{ color: '#dc2626' }} />
+            <Typography variant="body2" sx={{ fontWeight: 600, color: '#dc2626', mr: 1 }}>
+              Ends in:
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <TimerBox>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: '#dc2626' }}>
+                  {String(timeLeft.hours).padStart(2, '0')}
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#dc2626' }}>h</Typography>
+              </TimerBox>
+              <Typography variant="body2" sx={{ color: '#dc2626', alignSelf: 'center' }}>:</Typography>
+              <TimerBox>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: '#dc2626' }}>
+                  {String(timeLeft.minutes).padStart(2, '0')}
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#dc2626' }}>m</Typography>
+              </TimerBox>
+              <Typography variant="body2" sx={{ color: '#dc2626', alignSelf: 'center' }}>:</Typography>
+              <TimerBox>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: '#dc2626' }}>
+                  {String(timeLeft.seconds).padStart(2, '0')}
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#dc2626' }}>s</Typography>
+              </TimerBox>
+            </Box>
+          </CountdownTimer>
+
+          <Grid container spacing={3}>
+            {trendingProducts.slice(0, 8).map((product, index) => {
+              // Mock data for demo
+              const originalPrice = product.price * 1.4;
+              const discountPercent = Math.round(((originalPrice - product.price) / originalPrice) * 100);
+              
+              return (
+                <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
+                  <ProductCard
+                    product={product}
+                    wishlist={wishlist}
+                    handleToggleWishlist={handleToggleWishlist}
+                    isFlashDeal={true}
+                    discountPercent={discountPercent}
+                  />
+                </Grid>
+              );
+            })}
+          </Grid>
+        </FlashDealsContainer>
+      )}
 
       {/* All Products */}
       <Box>
@@ -360,17 +515,19 @@ const Home = () => {
           </Box>
         </CategoryFilter>
 
-        <Grid container spacing={3}>
-          {allProducts.map((product) => (
-            <Grid item xs={12} sm={6} md={4} lg={4} key={product.id}>
-              <ProductCard
-                product={product}
-                wishlist={wishlist}
-                handleToggleWishlist={handleToggleWishlist}
-              />
-            </Grid>
-          ))}
-        </Grid>
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Grid container spacing={3} sx={{ maxWidth: '1200px' }}>
+            {allProducts.map((product) => (
+              <Grid item xs={12} sm={6} md={4} key={product.id}>
+                <ProductCard
+                  product={product}
+                  wishlist={wishlist}
+                  handleToggleWishlist={handleToggleWishlist}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
       </Box>
     </Container>
   );

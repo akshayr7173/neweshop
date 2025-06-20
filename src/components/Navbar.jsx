@@ -29,7 +29,8 @@ import {
   AdminPanelSettings,
   DarkMode,
   LightMode,
-  Home as HomeIcon
+  Home as HomeIcon,
+  LocalOffer
 } from "@mui/icons-material";
 import { styled, alpha } from "@mui/material/styles";
 import { useNavigate, Link } from "react-router-dom";
@@ -361,6 +362,11 @@ const Navbar = () => {
                   <>
                     <MenuItem onClick={() => { navigate("/orders"); handleMenuClose(); }}>
                       My Orders
+                    </MenuItem>
+
+                    <MenuItem onClick={() => { navigate("/coupons"); handleMenuClose(); }}>
+                      <LocalOffer sx={{ mr: 1 }} />
+                      My Coupons
                     </MenuItem>
 
                     <MenuItem component={Link} to="/become-seller">

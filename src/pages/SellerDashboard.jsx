@@ -3,7 +3,7 @@ import {
   Box, Button, Typography, Grid, Card, CardMedia, CardContent, CardActions,
   Dialog, DialogTitle, DialogContent, DialogActions, TextField,
   Tabs, Tab, Table, TableHead, TableRow, TableCell, TableBody, 
-  CircularProgress, Paper, Chip, IconButton, Alert
+  CircularProgress, Paper, Chip, IconButton, Alert, Input
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { 
@@ -13,7 +13,9 @@ import {
   Visibility,
   TrendingUp,
   Inventory,
-  ShoppingCart
+  ShoppingCart,
+  CloudUpload,
+  Image as ImageIcon
 } from "@mui/icons-material";
 import api from "../api/axios";
 
@@ -62,6 +64,28 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
   }
 }));
 
+const ImageUploadBox = styled(Box)(({ theme }) => ({
+  border: `2px dashed ${theme.palette.divider}`,
+  borderRadius: '12px',
+  padding: theme.spacing(3),
+  textAlign: 'center',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease',
+  '&:hover': {
+    borderColor: theme.palette.primary.main,
+    backgroundColor: theme.palette.action.hover,
+  }
+}));
+
+const ImagePreview = styled('img')({
+  width: '100px',
+  height: '100px',
+  objectFit: 'cover',
+  borderRadius: '8px',
+  border: '1px solid #ddd',
+  margin: '4px',
+});
+
 const SellerDashboard = () => {
   const [tab, setTab] = useState(0);
   const [products, setProducts] = useState([]);
@@ -70,12 +94,13 @@ const SellerDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [selectedImages, setSelectedImages] = useState([]);
 
   const [formData, setFormData] = useState({
     title: "", 
     description: "", 
     price: "", 
-    imageUrl: "",
+    imageUrls: [],
     category: "", 
     quantity: ""
   });
@@ -112,6 +137,15 @@ const SellerDashboard = () => {
   const handleInputChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
+  const handleImageSelect = (e) => {
+    const files = Array.from(e.target.files);
+    setSelectedImages(files);
+    
+    // Create preview URLs
+    const imageUrls = files.map(file => URL.createObjectURL(file));
+    setFormData({ ...formData, imageUrls });
+  };
+
   const handleProductUpload = async () => {
     if (!formData.title || !formData.price || !formData.category) {
       setError("Please fill in all required fields");
@@ -120,14 +154,24 @@ const SellerDashboard = () => {
 
     try {
       setLoading(true);
+      
+      // For demo purposes, we'll use placeholder URLs
+      // In a real app, you'd upload images to a server first
+      const imageUrls = selectedImages.length > 0 
+        ? selectedImages.map((_, index) => `https://picsum.photos/400/400?random=${Date.now() + index}`)
+        : ["https://picsum.photos/400/400?random=" + Date.now()];
+
       await api.post("/Seller/UploadProduct", {
         ...formData,
         price: parseFloat(formData.price),
-        quantity: parseInt(formData.quantity) || 1
+        quantity: parseInt(formData.quantity) || 1,
+        imageUrl: imageUrls[0], // Primary image
+        imageUrls: imageUrls // All images
       }, { headers });
       
       setOpenUpload(false);
-      setFormData({ title: "", description: "", price: "", imageUrl: "", category: "", quantity: "" });
+      setFormData({ title: "", description: "", price: "", imageUrls: [], category: "", quantity: "" });
+      setSelectedImages([]);
       setSuccess("Product uploaded successfully!");
       fetchMyProducts();
     } catch (err) {
@@ -452,16 +496,47 @@ const SellerDashboard = () => {
                 placeholder="1"
               />
             </Grid>
+            
+            {/* Image Upload Section */}
             <Grid item xs={12}>
-              <StyledTextField
-                label="Image URL"
-                name="imageUrl"
-                fullWidth
-                value={formData.imageUrl}
-                onChange={handleInputChange}
-                placeholder="https://example.com/image.jpg"
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                Product Images
+              </Typography>
+              <input
+                accept="image/*"
+                style={{ display: 'none' }}
+                id="image-upload"
+                multiple
+                type="file"
+                onChange={handleImageSelect}
               />
+              <label htmlFor="image-upload">
+                <ImageUploadBox>
+                  <CloudUpload sx={{ fontSize: '3rem', color: 'text.secondary', mb: 1 }} />
+                  <Typography variant="body1" sx={{ mb: 1 }}>
+                    Click to upload product images
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    You can select multiple images (JPG, PNG)
+                  </Typography>
+                </ImageUploadBox>
+              </label>
+              
+              {/* Image Previews */}
+              {selectedImages.length > 0 && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                    Selected Images ({selectedImages.length}):
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    {formData.imageUrls.map((url, index) => (
+                      <ImagePreview key={index} src={url} alt={`Preview ${index + 1}`} />
+                    ))}
+                  </Box>
+                </Box>
+              )}
             </Grid>
+            
             <Grid item xs={12}>
               <StyledTextField
                 label="Description"
@@ -479,7 +554,11 @@ const SellerDashboard = () => {
         
         <DialogActions sx={{ p: 3 }}>
           <Button 
-            onClick={() => setOpenUpload(false)}
+            onClick={() => {
+              setOpenUpload(false);
+              setSelectedImages([]);
+              setFormData({ title: "", description: "", price: "", imageUrls: [], category: "", quantity: "" });
+            }}
             sx={{ borderRadius: '12px', textTransform: 'none' }}
           >
             Cancel

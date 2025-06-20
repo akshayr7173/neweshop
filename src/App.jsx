@@ -15,6 +15,7 @@ import Checkout from "./pages/Checkout";
 import Wishlist from "./pages/Wishlist";
 import Orders from "./pages/Orders";
 import Profile from "./pages/Profile";
+import Coupons from "./pages/Coupons";
 import ProtectedRoute from "./components/ProtectedRoute";
 import SellerDashboard from "./pages/SellerDashboard";
 import BecomeSeller from "./pages/BecomeSeller";
@@ -51,6 +52,7 @@ export default function App() {
                   <Route path="/my-orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
                   <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
                   <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                  <Route path="/coupons" element={<ProtectedRoute><Coupons /></ProtectedRoute>} />
 
                   {/* ✅ Allow ALL logged-in users to access Become Seller */}
                   <Route path="/become-seller" element={<ProtectedRoute><BecomeSeller /></ProtectedRoute>} />
