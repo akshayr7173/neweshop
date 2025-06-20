@@ -9,8 +9,6 @@ import {
   Paper,
   Chip,
   Button,
-  Card,
-  CardContent,
   IconButton,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
@@ -19,16 +17,16 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import ProductCard from "../pages/ProductCard";
 import FlashDeals from "../pages/FlashDeals";
-import { 
-  TrendingUp, 
-  LocalOffer, 
+import {
+  TrendingUp,
+  LocalOffer,
   Star,
   ArrowForward,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
 } from "@mui/icons-material";
 
-// Import banner images
+// Banner Images
 import banner1 from "../assets/banner1.jpeg";
 import banner2 from "../assets/banner2.jpeg";
 import banner3 from "../assets/banner3.jpeg";
@@ -106,11 +104,7 @@ const CategoryFilter = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
   borderRadius: '16px',
   border: `1px solid ${theme.palette.divider}`,
-  boxShadow: theme.palette.mode === 'dark'
-    ? '0 2px 8px rgba(0, 0, 0, 0.3)'
-    : '0 2px 8px rgba(0, 0, 0, 0.04)',
   marginBottom: theme.spacing(3),
-  backgroundColor: theme.palette.background.paper,
 }));
 
 const StyledSelect = styled(Select)(({ theme }) => ({
@@ -159,6 +153,7 @@ const Home = () => {
   const [allProducts, setAllProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [wishlist, setWishlist] = useState([]);
 
   const BASE_URL = "https://localhost:7040";
 
@@ -166,6 +161,7 @@ const Home = () => {
     fetchFlashProducts();
     fetchCategories();
     fetchAllProducts();
+    fetchWishlist();
   }, []);
 
   useEffect(() => {
@@ -206,8 +202,42 @@ const Home = () => {
     }
   };
 
-  const handleCategoryChange = (e) => {
-    setSelectedCategory(e.target.value);
+  const fetchWishlist = async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/Wishlist`, {
+        credentials: 'include',
+      });
+      const data = await res.json();
+      setWishlist(data || []);
+    } catch (err) {
+      console.error("Error fetching wishlist", err);
+    }
+  };
+
+  const handleToggleWishlist = async (productId) => {
+    try {
+      const isInWishlist = wishlist.includes(productId);
+      const method = isInWishlist ? "DELETE" : "POST";
+      const url = isInWishlist
+        ? `${BASE_URL}/api/Wishlist/Remove/${productId}`
+        : `${BASE_URL}/api/Wishlist/Add`;
+
+      const body = isInWishlist ? null : JSON.stringify({ productId });
+
+      await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body,
+        credentials: "include",
+      });
+
+      // Refetch wishlist
+      fetchWishlist();
+    } catch (error) {
+      console.error("Wishlist toggle error", error);
+    }
   };
 
   const sliderImages = [banner1, banner2, banner3];
@@ -223,7 +253,6 @@ const Home = () => {
     prevArrow: <PrevArrow />,
     nextArrow: <NextArrow />,
     fade: true,
-    cssEase: 'cubic-bezier(0.4, 0, 0.2, 1)',
   };
 
   const flashSaleSettings = {
@@ -237,81 +266,54 @@ const Home = () => {
     responsive: [
       {
         breakpoint: 1200,
-        settings: {
-          slidesToShow: 3,
-          slidesToScroll: 1,
-        }
+        settings: { slidesToShow: 3, slidesToScroll: 1 },
       },
       {
         breakpoint: 900,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 1,
-        }
+        settings: { slidesToShow: 2, slidesToScroll: 1 },
       },
       {
         breakpoint: 600,
-        settings: {
-          slidesToShow: 1,
-          slidesToScroll: 1,
-        }
-      }
-    ]
+        settings: { slidesToShow: 1, slidesToScroll: 1 },
+      },
+    ],
   };
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 3, px: { xs: 2, md: 3 } }}>
-      {/* Hero Slider */}
-      <HeroSection className="animate-fade-in-up">
+    <Container maxWidth="xl" sx={{ mt: 3 }}>
+      {/* Hero Banner */}
+      <HeroSection>
         <Slider {...sliderSettings}>
-          {sliderImages.map((img, index) => (
-            <Box key={index}>
-              <BannerImage
-                src={img}
-                alt={`banner-${index}`}
-                onError={(e) => {
-                  e.target.src = "/src/assets/default.png";
-                }}
-              />
+          {sliderImages.map((img, i) => (
+            <Box key={i}>
+              <BannerImage src={img} alt={`banner-${i}`} />
             </Box>
           ))}
         </Slider>
       </HeroSection>
 
-      {/* Flash Sale Section */}
+      {/* Flash Sale */}
       {flashProducts.length > 0 && (
-        <FlashSaleContainer className="animate-fade-in-up">
+        <FlashSaleContainer>
           <SectionHeader>
             <SectionTitle>
-              <LocalOffer sx={{ color: '#f59e0b' }} />
+              <LocalOffer sx={{ color: "#f59e0b" }} />
               ⚡ Flash Sale
-              <Chip 
-                label="Limited Time" 
-                size="small" 
-                sx={{ 
-                  bgcolor: '#dc2626', 
-                  color: 'white',
-                  animation: 'pulse 2s infinite'
-                }} 
-              />
+              <Chip label="Limited Time" size="small" sx={{ bgcolor: "#dc2626", color: "white" }} />
             </SectionTitle>
-            <Button 
-              endIcon={<ArrowForward />}
-              sx={{ 
-                color: '#92400e',
-                fontWeight: 600,
-                '&:hover': { bgcolor: 'rgba(146, 64, 14, 0.08)' }
-              }}
-            >
+            <Button endIcon={<ArrowForward />} sx={{ color: "#92400e", fontWeight: 600 }}>
               View All
             </Button>
           </SectionHeader>
-          
-          <Box sx={{ position: 'relative' }}>
+          <Box>
             <Slider {...flashSaleSettings}>
               {flashProducts.map((product) => (
                 <Box key={product.id} sx={{ px: 1 }}>
-                  <ProductCard product={product} />
+                  <ProductCard
+                    product={product}
+                    wishlist={wishlist}
+                    handleToggleWishlist={handleToggleWishlist}
+                  />
                 </Box>
               ))}
             </Slider>
@@ -320,28 +322,27 @@ const Home = () => {
       )}
 
       {/* Flash Deals Component */}
-      <Box className="animate-fade-in-up" sx={{ mb: 4 }}>
+      <Box sx={{ mb: 4 }}>
         <FlashDeals />
       </Box>
 
-      {/* All Products Section */}
-      <Box className="animate-fade-in-up">
+      {/* All Products */}
+      <Box>
         <SectionHeader>
           <SectionTitle>
-            <Star sx={{ color: '#f59e0b' }} />
+            <Star sx={{ color: "#f59e0b" }} />
             All Products
           </SectionTitle>
         </SectionHeader>
 
-        {/* Category Filter */}
         <CategoryFilter>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 600, minWidth: 'fit-content' }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
               Filter by Category:
             </Typography>
             <StyledSelect
               value={selectedCategory}
-              onChange={handleCategoryChange}
+              onChange={(e) => setSelectedCategory(e.target.value)}
               displayEmpty
               size="small"
               sx={{ minWidth: 200 }}
@@ -359,11 +360,14 @@ const Home = () => {
           </Box>
         </CategoryFilter>
 
-        {/* Products Grid */}
         <Grid container spacing={3}>
           {allProducts.map((product) => (
             <Grid item xs={12} sm={6} md={4} lg={4} key={product.id}>
-              <ProductCard product={product} />
+              <ProductCard
+                product={product}
+                wishlist={wishlist}
+                handleToggleWishlist={handleToggleWishlist}
+              />
             </Grid>
           ))}
         </Grid>

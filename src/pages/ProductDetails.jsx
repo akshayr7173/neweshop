@@ -18,7 +18,7 @@ const ProductDetails = () => {
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  const userId = localStorage.getItem("userId");
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     fetchProduct();
@@ -37,11 +37,19 @@ const ProductDetails = () => {
 
   const addToCart = async () => {
     try {
-      await axios.post(`https://localhost:7040/api/Cart/Add`, {
-        userId,
-        productId: product.id,
-        quantity: 1,
-      });
+      await axios.post(
+        `https://localhost:7040/api/Cart/Add`,
+        {
+          productId: product.id,
+          quantity: 1,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
       alert("Added to cart!");
     } catch (err) {
       console.error("Add to cart error", err);
@@ -52,14 +60,21 @@ const ProductDetails = () => {
   const addToWishlist = async () => {
     try {
       await axios.post(
-        `https://localhost:7040/api/Wishlist/Add`,
-        { userId, productId: product.id },
-        { headers: { "Content-Type": "application/json" } }
+        `https://localhost:7040/api/Wishlist/add`,
+        { productId: product.id },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
       );
       alert("Added to wishlist!");
     } catch (err) {
       console.error("Add to wishlist error", err);
-      alert("Failed to add to wishlist.");
+      alert(
+        err.response?.data || "Failed to add to wishlist. Maybe it's already added."
+      );
     }
   };
 

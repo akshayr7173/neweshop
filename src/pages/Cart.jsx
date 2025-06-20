@@ -96,25 +96,26 @@ const Cart = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const items = Array.isArray(res.data) ? res.data : [];
-      setCartItems(items);
-      calculateTotal(items);
+      const { items, totalAmount } = res.data;
+      const formattedItems = items.map((item) => ({
+        id: item.id,
+        quantity: item.quantity,
+        product: {
+          id: item.productId,
+          title: item.product,
+          price: item.price,
+          imageUrl: item.imageUrl,
+        },
+      }));
+
+      setCartItems(formattedItems);
+      setTotalBill(totalAmount);
     } catch (error) {
       console.error("Error fetching cart", error);
       setError("Failed to load cart items");
     } finally {
       setLoading(false);
     }
-  };
-
-  const calculateTotal = (items) => {
-    if (!Array.isArray(items)) return setTotalBill(0);
-
-    const total = items.reduce(
-      (sum, item) => sum + (item.product?.price || 0) * item.quantity,
-      0
-    );
-    setTotalBill(total);
   };
 
   const updateQuantity = async (itemId, newQuantity) => {
@@ -131,7 +132,12 @@ const Cart = () => {
         item.id === itemId ? { ...item, quantity: newQuantity } : item
       );
       setCartItems(updatedItems);
-      calculateTotal(updatedItems);
+
+      const updatedTotal = updatedItems.reduce(
+        (sum, item) => sum + item.product.price * item.quantity,
+        0
+      );
+      setTotalBill(updatedTotal);
     } catch (err) {
       console.error("Update quantity error", err);
       setError("Failed to update quantity");
@@ -194,8 +200,7 @@ const Cart = () => {
           Shopping Cart
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          {cartItems.length}{" "}
-          {cartItems.length === 1 ? "item" : "items"} in your cart
+          {cartItems.length} {cartItems.length === 1 ? "item" : "items"} in your cart
         </Typography>
       </Box>
 
@@ -244,10 +249,8 @@ const Cart = () => {
                     <Grid item xs={12} sm={3}>
                       <CardMedia
                         component="img"
-                        image={
-                          item.product?.imageUrl || "/assets/default.png"
-                        }
-                        alt={item.product?.title}
+                        image={item.product.imageUrl || "/assets/default.png"}
+                        alt={item.product.title}
                         sx={{
                           width: "100%",
                           height: 120,
@@ -258,25 +261,14 @@ const Cart = () => {
                     </Grid>
 
                     <Grid item xs={12} sm={6}>
-                      <Typography
-                        variant="h6"
-                        sx={{ fontWeight: 600, mb: 1 }}
-                      >
-                        {item.product?.title}
+                      <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                        {item.product.title}
                       </Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ mb: 2 }}
-                      >
-                        {item.product?.description?.substring(0, 100)}...
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        ₹{item.product.price}
                       </Typography>
-                      <Typography
-                        variant="h6"
-                        color="primary.main"
-                        sx={{ fontWeight: 700 }}
-                      >
-                        ₹{item.product?.price}
+                      <Typography variant="body2" color="text.secondary">
+                        Quantity: {item.quantity}
                       </Typography>
                     </Grid>
 
@@ -297,9 +289,7 @@ const Cart = () => {
                           }}
                         >
                           <QuantityButton
-                            onClick={() =>
-                              updateQuantity(item.id, item.quantity - 1)
-                            }
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
                             disabled={item.quantity <= 1}
                           >
                             <Remove fontSize="small" />
@@ -327,17 +317,14 @@ const Cart = () => {
                           />
 
                           <QuantityButton
-                            onClick={() =>
-                              updateQuantity(item.id, item.quantity + 1)
-                            }
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
                           >
                             <Add fontSize="small" />
                           </QuantityButton>
                         </Box>
 
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          Total: ₹
-                          {(item.product?.price * item.quantity).toFixed(2)}
+                          Total: ₹{(item.product.price * item.quantity).toFixed(2)}
                         </Typography>
 
                         <IconButton
@@ -362,9 +349,7 @@ const Cart = () => {
               </Typography>
 
               <Box sx={{ mb: 2 }}>
-                <Box
-                  sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
-                >
+                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                   <Typography variant="body2">
                     Subtotal ({cartItems.length} items)
                   </Typography>
