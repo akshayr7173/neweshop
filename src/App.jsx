@@ -23,6 +23,7 @@ import ProductPage from "./pages/ProductPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import { Box } from "@mui/material";
+import SharedWishlist from "./pages/SharedWishlist";
 
 export default function App() {
   return (
@@ -53,6 +54,7 @@ export default function App() {
                   <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
                   <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                   <Route path="/coupons" element={<ProtectedRoute><Coupons /></ProtectedRoute>} />
+                  <Route path="/wishlist/shared/:token" element={<ProtectedRoute><SharedWishlist /></ProtectedRoute>} />
 
                   {/* ✅ Allow ALL logged-in users to access Become Seller */}
                   <Route path="/become-seller" element={<ProtectedRoute><BecomeSeller /></ProtectedRoute>} />

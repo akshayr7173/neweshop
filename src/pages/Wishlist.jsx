@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { ContentCopy } from "@mui/icons-material";
 import {
   Box,
   Typography,
@@ -10,6 +11,7 @@ import {
   CardContent,
   CardMedia,
   Alert,
+  TextField,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import {
@@ -19,6 +21,7 @@ import {
 } from "@mui/icons-material";
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const WishlistContainer = styled(Box)(({ theme }) => ({
   maxWidth: "1200px",
@@ -105,6 +108,8 @@ const WishlistPage = () => {
       setError("Failed to add to cart");
     }
   };
+  const wishlistLink = `${window.location.origin}/wishlist/shared/${user?.wishlistShareToken}`;
+
 
   const addToWishlist = async (productId) => {
     try {
@@ -147,6 +152,27 @@ const WishlistPage = () => {
         <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
           My Wishlist
         </Typography>
+        <Box display="flex" alignItems="center" mb={2}>
+          <TextField
+            value={wishlistLink}
+            size="small"
+            fullWidth
+            InputProps={{
+              readOnly: true,
+              endAdornment: (
+                <IconButton
+                  onClick={() => {
+                    navigator.clipboard.writeText(wishlistLink);
+                    toast.success("Link copied to clipboard!");
+                  }}
+                >
+                  <ContentCopy fontSize="small" />
+                </IconButton>
+              ),
+            }}
+            sx={{ mr: 1 }}
+          />
+        </Box>
         <Typography variant="body1" color="text.secondary">
           {wishlist.length} {wishlist.length === 1 ? "item" : "items"} in your
           wishlist

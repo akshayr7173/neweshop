@@ -113,8 +113,22 @@ const Orders = () => {
     }
   };
 
-  const downloadInvoice = (orderId) => {
-    window.open(`https://localhost:7040/api/Order/invoice/${orderId}`, '_blank');
+  const downloadInvoice = async (orderId) => {
+    const response = await api.get(`/Order/invoice/${orderId}`, {
+      responseType: 'blob',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    // Create a link to download the file
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `invoice_${orderId}.pdf`); // or the correct filename
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   };
 
   if (loading) {

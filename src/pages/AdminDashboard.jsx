@@ -120,7 +120,7 @@ const AdminDashboard = () => {
         axios.get("https://localhost:7040/api/Product/pending", config),
         axios.get("https://localhost:7040/api/Product/Approved?page=1&pageSize=1000", config),
         axios.get("https://localhost:7040/api/Admin/AllUsers", config),
-        axios.get("https://localhost:7040/api/Order", config)
+        axios.get("https://localhost:7040/api/Order/my", config)
       ]);
 
       setPendingProducts(pendingRes.data);
@@ -152,7 +152,7 @@ const AdminDashboard = () => {
           break;
         }
         case 2: {
-          const res = await axios.get("https://localhost:7040/api/Admin/RejectedProducts", config);
+          const res = await axios.get("https://localhost:7040/api/Product/rejected", config);
           setRejectedProducts(res.data);
           break;
         }
@@ -167,7 +167,7 @@ const AdminDashboard = () => {
           break;
         }
         case 5: {
-          const res = await axios.get("https://localhost:7040/api/Order", config);
+          const res = await axios.get("https://localhost:7040/api/Order/my", config);
           setOrders(res.data);
           break;
         }

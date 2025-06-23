@@ -95,15 +95,7 @@ const SellerDashboard = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [selectedImages, setSelectedImages] = useState([]);
-
-  const [formData, setFormData] = useState({
-    title: "", 
-    description: "", 
-    price: "", 
-    imageUrls: [],
-    category: "", 
-    quantity: ""
-  });
+  const [formData, setFormData] = useState({ imageUrls: [] });
 
   const token = localStorage.getItem("token");
   const headers = { Authorization: `Bearer ${token}` };
@@ -140,10 +132,9 @@ const SellerDashboard = () => {
   const handleImageSelect = (e) => {
     const files = Array.from(e.target.files);
     setSelectedImages(files);
-    
-    // Create preview URLs
+
     const imageUrls = files.map(file => URL.createObjectURL(file));
-    setFormData({ ...formData, imageUrls });
+    setFormData(prev => ({ ...prev, imageUrls }));
   };
 
   const handleProductUpload = async () => {
@@ -159,14 +150,14 @@ const SellerDashboard = () => {
       // In a real app, you'd upload images to a server first
       const imageUrls = selectedImages.length > 0 
         ? selectedImages.map((_, index) => `https://picsum.photos/400/400?random=${Date.now() + index}`)
-        : ["https://picsum.photos/400/400?random=" + Date.now()];
+        : [`https://picsum.photos/400/400?random=${Date.now()}`];
 
       await api.post("/Seller/UploadProduct", {
         ...formData,
         price: parseFloat(formData.price),
         quantity: parseInt(formData.quantity) || 1,
-        imageUrl: imageUrls[0], // Primary image
-        imageUrls: imageUrls // All images
+        imageUrl: imageUrls[0],      // Primary
+        imageUrls: imageUrls         // All images
       }, { headers });
       
       setOpenUpload(false);
@@ -502,37 +493,30 @@ const SellerDashboard = () => {
               <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
                 Product Images
               </Typography>
-              <input
-                accept="image/*"
-                style={{ display: 'none' }}
-                id="image-upload"
-                multiple
+              <Input
                 type="file"
+                inputProps={{ multiple: true }}
                 onChange={handleImageSelect}
+                sx={{ display: "none" }}
+                id="upload-images"
               />
-              <label htmlFor="image-upload">
-                <ImageUploadBox>
-                  <CloudUpload sx={{ fontSize: '3rem', color: 'text.secondary', mb: 1 }} />
-                  <Typography variant="body1" sx={{ mb: 1 }}>
-                    Click to upload product images
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    You can select multiple images (JPG, PNG)
-                  </Typography>
-                </ImageUploadBox>
+              <label htmlFor="upload-images">
+                <Button variant="contained" component="span">
+                  Upload Images
+                </Button>
               </label>
               
               {/* Image Previews */}
               {selectedImages.length > 0 && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    Selected Images ({selectedImages.length}):
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {formData.imageUrls.map((url, index) => (
-                      <ImagePreview key={index} src={url} alt={`Preview ${index + 1}`} />
-                    ))}
-                  </Box>
+                <Box sx={{ display: "flex", flexWrap: "wrap", mt: 2 }}>
+                  {formData.imageUrls.map((src, idx) => (
+                    <img
+                      key={idx}
+                      src={src}
+                      alt={`preview-${idx}`}
+                      style={{ width: 80, height: 80, objectFit: "cover", marginRight: 8 }}
+                    />
+                  ))}
                 </Box>
               )}
             </Grid>

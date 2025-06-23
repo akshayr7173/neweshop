@@ -1,17 +1,17 @@
+// ProductDetails.jsx
 import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
   Grid,
   Button,
-  Paper,
   CircularProgress,
   Chip,
   Rating,
   Divider,
   Card,
-  CardContent,
   Alert,
+  TextField,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { useParams, useNavigate } from "react-router-dom";
@@ -27,79 +27,94 @@ import {
   Verified,
 } from "@mui/icons-material";
 
+// --- Styles ---
 const ProductContainer = styled(Box)(({ theme }) => ({
-  maxWidth: '1200px',
-  margin: '0 auto',
+  maxWidth: "1200px",
+  margin: "0 auto",
   padding: theme.spacing(3),
 }));
 
-const ProductImage = styled('img')(({ theme }) => ({
-  width: '100%',
-  height: '500px',
-  objectFit: 'cover',
-  borderRadius: '16px',
+const ProductImage = styled("img")(({ theme }) => ({
+  width: "100%",
+  height: "500px",
+  objectFit: "cover",
+  borderRadius: "16px",
   border: `1px solid ${theme.palette.divider}`,
-  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
 }));
 
 const PriceBox = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
+  display: "flex",
+  alignItems: "center",
   gap: theme.spacing(2),
   marginBottom: theme.spacing(2),
 }));
 
 const CurrentPrice = styled(Typography)(({ theme }) => ({
-  fontSize: '2rem',
+  fontSize: "2rem",
   fontWeight: 700,
   color: theme.palette.primary.main,
 }));
 
 const OriginalPrice = styled(Typography)(({ theme }) => ({
-  fontSize: '1.2rem',
+  fontSize: "1.2rem",
   color: theme.palette.text.secondary,
-  textDecoration: 'line-through',
+  textDecoration: "line-through",
 }));
 
 const ActionButton = styled(Button)(({ theme }) => ({
-  borderRadius: '12px',
-  textTransform: 'none',
+  borderRadius: "12px",
+  textTransform: "none",
   fontWeight: 600,
-  padding: '12px 24px',
-  fontSize: '1rem',
+  padding: "12px 24px",
+  fontSize: "1rem",
 }));
 
 const BuyNowButton = styled(ActionButton)({
-  background: 'linear-gradient(135deg, #0ea5e9, #d946ef)',
-  color: 'white',
-  '&:hover': {
-    background: 'linear-gradient(135deg, #0284c7, #c026d3)',
-    transform: 'translateY(-2px)',
-    boxShadow: '0 8px 25px rgba(14, 165, 233, 0.4)',
+  background: "linear-gradient(135deg, #0ea5e9, #d946ef)",
+  color: "white",
+  "&:hover": {
+    background: "linear-gradient(135deg, #0284c7, #c026d3)",
+    transform: "translateY(-2px)",
+    boxShadow: "0 8px 25px rgba(14, 165, 233, 0.4)",
   },
 });
 
 const FeatureCard = styled(Card)(({ theme }) => ({
-  borderRadius: '12px',
+  borderRadius: "12px",
   border: `1px solid ${theme.palette.divider}`,
-  boxShadow: 'none',
+  boxShadow: "none",
   padding: theme.spacing(2),
-  textAlign: 'center',
+  textAlign: "center",
 }));
 
+const ReviewCard = styled(Card)(({ theme }) => ({
+  padding: theme.spacing(2),
+  marginBottom: theme.spacing(2),
+  borderRadius: "12px",
+  backgroundColor: "#fafafa",
+}));
+
+// --- Component ---
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isInCart, setIsInCart] = useState(false);
   const [error, setError] = useState("");
-  
-  const token = localStorage.getItem("token");
+
+  const [reviews, setReviews] = useState([]);
+  const [userHasReviewed, setUserHasReviewed] = useState(false);
+  const [newRating, setNewRating] = useState(0);
+  const [newComment, setNewComment] = useState("");
 
   useEffect(() => {
     fetchProduct();
+    fetchReviews();
   }, [id]);
 
   const fetchProduct = async () => {
@@ -115,18 +130,61 @@ const ProductDetails = () => {
     }
   };
 
+  const fetchReviews = async () => {
+    try {
+      const res = await axios.get(
+        `https://localhost:7040/api/Product/${id}/reviews`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setReviews(res.data || []);
+
+      const userId = JSON.parse(atob(token.split(".")[1])).UserId;
+      setUserHasReviewed(res.data?.some((r) => r.userId === userId));
+    } catch (err) {
+      console.error("Error fetching reviews", err);
+      setReviews([]);
+    }
+  };
+
+  const submitReview = async () => {
+    if (!newRating || !newComment.trim()) {
+      toast.error("Please provide rating and comment");
+      return;
+    }
+
+    try {
+      await axios.post(
+        `https://localhost:7040/api/Product/${id}/reviews`,
+        {
+          rating: newRating,
+          comment: newComment,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      toast.success("Review submitted!");
+      setNewRating(0);
+      setNewComment("");
+      fetchReviews();
+      setUserHasReviewed(true);
+    } catch (err) {
+      console.error("Review submit error", err);
+      toast.error("Failed to submit review");
+    }
+  };
+
   const getImageUrl = (imageUrl) => {
-    if (!imageUrl) return "/src/assets/default.png";
-    
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+    if (!imageUrl) return "/assets/default.png";
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://"))
       return imageUrl;
-    }
-    
-    if (imageUrl.startsWith('/')) {
-      return `https://localhost:7040${imageUrl}`;
-    }
-    
-    return `https://localhost:7040/${imageUrl}`;
+    return `https://localhost:7040/${imageUrl.replace(/^\/+/, "")}`;
   };
 
   const addToCart = async () => {
@@ -151,7 +209,6 @@ const ProductDetails = () => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
           },
         }
       );
@@ -172,9 +229,12 @@ const ProductDetails = () => {
 
     try {
       if (isWishlisted) {
-        await axios.delete(`https://localhost:7040/api/Wishlist/Remove/${product.id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await axios.delete(
+          `https://localhost:7040/api/Wishlist/Remove/${product.id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         setIsWishlisted(false);
         toast.success("Removed from wishlist");
       } else {
@@ -184,7 +244,6 @@ const ProductDetails = () => {
           {
             headers: {
               Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
             },
           }
         );
@@ -213,7 +272,6 @@ const ProductDetails = () => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
           },
         }
       );
@@ -227,7 +285,7 @@ const ProductDetails = () => {
   if (loading) {
     return (
       <ProductContainer>
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
           <CircularProgress />
         </Box>
       </ProductContainer>
@@ -237,7 +295,7 @@ const ProductDetails = () => {
   if (error || !product) {
     return (
       <ProductContainer>
-        <Alert severity="error" sx={{ borderRadius: '12px' }}>
+        <Alert severity="error" sx={{ borderRadius: "12px" }}>
           {error || "Product not found"}
         </Alert>
       </ProductContainer>
@@ -246,92 +304,80 @@ const ProductDetails = () => {
 
   const isOutOfStock = product.quantity === 0;
   const originalPrice = product.price * 1.2;
-  const discountPercent = Math.round(((originalPrice - product.price) / originalPrice) * 100);
+  const discountPercent = Math.round(
+    ((originalPrice - product.price) / originalPrice) * 100
+  );
+
+  const avgRating =
+    reviews.length > 0
+      ? (
+          reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+        ).toFixed(1)
+      : "0.0";
 
   return (
     <ProductContainer>
       <Grid container spacing={4}>
-        {/* Product Image */}
         <Grid item xs={12} md={6}>
           <ProductImage
             src={getImageUrl(product.imageUrl)}
             alt={product.title || product.name}
             onError={(e) => {
-              e.target.src = "/src/assets/default.png";
+              e.target.src = "/assets/default.png";
             }}
           />
         </Grid>
 
-        {/* Product Details */}
         <Grid item xs={12} md={6}>
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-              {product.title || product.name}
-            </Typography>
-            
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-              <Rating value={4.2} precision={0.1} readOnly />
-              <Typography variant="body2" color="text.secondary">
-                (4.2) • 1,234 reviews
-              </Typography>
-            </Box>
+          <Typography variant="h4" fontWeight={700}>
+            {product.title || product.name}
+          </Typography>
 
-            {product.category && (
-              <Chip 
-                label={product.category} 
-                variant="outlined" 
-                sx={{ mb: 2 }}
-              />
-            )}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}>
+            <Rating value={Number(avgRating)} precision={0.1} readOnly />
+            <Typography variant="body2">({avgRating}) • {reviews.length} reviews</Typography>
           </Box>
+
+          {product.category && (
+            <Chip label={product.category} variant="outlined" sx={{ mt: 2 }} />
+          )}
 
           <PriceBox>
             <CurrentPrice>₹{product.price}</CurrentPrice>
             {discountPercent > 0 && (
               <>
                 <OriginalPrice>₹{Math.round(originalPrice)}</OriginalPrice>
-                <Chip 
-                  label={`${discountPercent}% OFF`} 
-                  color="success" 
-                  size="small"
-                />
+                <Chip label={`${discountPercent}% OFF`} color="success" />
               </>
             )}
           </PriceBox>
 
           {isOutOfStock && (
-            <Alert severity="warning" sx={{ mb: 2, borderRadius: '12px' }}>
-              This product is currently out of stock
-            </Alert>
+            <Alert severity="warning">Out of Stock</Alert>
           )}
 
-          <Typography variant="body1" sx={{ mb: 3, lineHeight: 1.6 }}>
+          <Typography variant="body1" sx={{ mt: 2, mb: 3 }}>
             {product.description}
           </Typography>
 
-          <Divider sx={{ my: 3 }} />
-
-          {/* Action Buttons */}
-          <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mb: 3 }}>
             <BuyNowButton
               startIcon={<Bolt />}
               onClick={handleBuyNow}
               disabled={isOutOfStock}
-              sx={{ flex: 1, minWidth: '200px' }}
             >
               Buy Now
             </BuyNowButton>
-            
+
             <ActionButton
               variant="outlined"
               startIcon={<ShoppingCart />}
               onClick={addToCart}
               disabled={isOutOfStock || isInCart}
-              sx={{ flex: 1, minWidth: '200px' }}
             >
               {isInCart ? "In Cart" : "Add to Cart"}
             </ActionButton>
-            
+
             <ActionButton
               variant="outlined"
               startIcon={isWishlisted ? <Favorite /> : <FavoriteBorder />}
@@ -342,35 +388,83 @@ const ProductDetails = () => {
             </ActionButton>
           </Box>
 
-          {/* Features */}
           <Grid container spacing={2}>
             <Grid item xs={4}>
               <FeatureCard>
-                <LocalShipping sx={{ color: 'primary.main', mb: 1 }} />
-                <Typography variant="caption" display="block">
-                  Free Delivery
-                </Typography>
+                <LocalShipping />
+                <Typography variant="caption">Free Delivery</Typography>
               </FeatureCard>
             </Grid>
             <Grid item xs={4}>
               <FeatureCard>
-                <Security sx={{ color: 'primary.main', mb: 1 }} />
-                <Typography variant="caption" display="block">
-                  Secure Payment
-                </Typography>
+                <Security />
+                <Typography variant="caption">Secure Payment</Typography>
               </FeatureCard>
             </Grid>
             <Grid item xs={4}>
               <FeatureCard>
-                <Verified sx={{ color: 'primary.main', mb: 1 }} />
-                <Typography variant="caption" display="block">
-                  Authentic Product
-                </Typography>
+                <Verified />
+                <Typography variant="caption">Authentic Product</Typography>
               </FeatureCard>
             </Grid>
           </Grid>
         </Grid>
       </Grid>
+
+      {/* Reviews Section */}
+      <Divider sx={{ my: 5 }} />
+      <Typography variant="h5" gutterBottom>
+        Customer Reviews
+      </Typography>
+
+      {reviews.length === 0 ? (
+        <Typography variant="body2" color="text.secondary">
+          No reviews yet.
+        </Typography>
+      ) : (
+        reviews.map((review) => (
+          <ReviewCard key={review.id}>
+            <Box display="flex" alignItems="center" gap={1}>
+              <Rating value={review.rating} readOnly size="small" />
+              <Typography variant="body2" fontWeight="bold">
+                {review.userName || "User"}
+              </Typography>
+            </Box>
+            <Typography variant="body2" mt={1}>
+              {review.comment}
+            </Typography>
+          </ReviewCard>
+        ))
+      )}
+
+      {/* Add Review */}
+      {!userHasReviewed && token && (
+        <Box mt={4}>
+          <Typography variant="h6" gutterBottom>
+            Write a Review
+          </Typography>
+          <Rating
+            value={newRating}
+            onChange={(e, newVal) => setNewRating(newVal)}
+          />
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            placeholder="Write your comment..."
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            sx={{ my: 2 }}
+          />
+          <Button
+            variant="contained"
+            onClick={submitReview}
+            disabled={!newRating || !newComment.trim()}
+          >
+            Submit Review
+          </Button>
+        </Box>
+      )}
     </ProductContainer>
   );
 };
