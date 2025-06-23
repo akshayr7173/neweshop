@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { ContentCopy } from "@mui/icons-material";
 import {
   Box,
   Typography,
@@ -18,6 +17,7 @@ import {
   Delete,
   ShoppingCart,
   FavoriteBorder,
+  ContentCopy,
 } from "@mui/icons-material";
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
@@ -50,34 +50,48 @@ const ActionButton = styled(Button)(({ theme }) => ({
 const WishlistPage = () => {
   const userId = localStorage.getItem("userId");
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
+
   const [wishlist, setWishlist] = useState([]);
+  const [wishlistToken, setWishlistToken] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
+
+  const wishlistLink = wishlistToken
+    ? `${window.location.origin}/wishlist/shared/${wishlistToken}`
+    : "";
 
   useEffect(() => {
     fetchWishlist();
   }, []);
 
-  const fetchWishlist = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get("/Wishlist", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setWishlist(res.data);
-    } catch (err) {
-      console.error("Fetch wishlist error", err);
-      setError("Failed to load wishlist");
-    } finally {
-      setLoading(false);
-    }
-  };
+const fetchWishlist = async () => {
+  try {
+    setLoading(true);
+    const res = await api.get("/Wishlist", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const items = Array.isArray(res.data)
+      ? res.data
+      : res.data.items || [];
+
+    const shareToken = res.data?.wishlistShareToken || "";
+
+    setWishlist(items);
+    setWishlistToken(shareToken);
+  } catch (err) {
+    console.error("Fetch wishlist error", err);
+    setError("Failed to load wishlist");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const removeFromWishlist = async (productId) => {
     try {
-      await api.delete(`/Wishlist/Remove/${productId}`, {
-        headers: { Authorization: `Bearer ${token}` },
+     await api.delete(`/Wishlist/Remove/${product.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
       });
       setWishlist(wishlist.filter((item) => item.id !== productId));
     } catch (err) {
@@ -102,33 +116,10 @@ const WishlistPage = () => {
           },
         }
       );
-      alert("Added to cart!");
+      toast.success("Added to cart!");
     } catch (err) {
       console.error("Add to cart error", err);
       setError("Failed to add to cart");
-    }
-  };
-  const wishlistLink = `${window.location.origin}/wishlist/shared/${user?.wishlistShareToken}`;
-
-
-  const addToWishlist = async (productId) => {
-    try {
-      await api.post(
-        "/Wishlist/add",
-        { productId: productId },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      alert("Added to wishlist!");
-    } catch (err) {
-      console.error("Add to wishlist error", err);
-      setError(
-        err.response?.data || "Failed to add to wishlist"
-      );
     }
   };
 
@@ -152,27 +143,31 @@ const WishlistPage = () => {
         <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
           My Wishlist
         </Typography>
-        <Box display="flex" alignItems="center" mb={2}>
-          <TextField
-            value={wishlistLink}
-            size="small"
-            fullWidth
-            InputProps={{
-              readOnly: true,
-              endAdornment: (
-                <IconButton
-                  onClick={() => {
-                    navigator.clipboard.writeText(wishlistLink);
-                    toast.success("Link copied to clipboard!");
-                  }}
-                >
-                  <ContentCopy fontSize="small" />
-                </IconButton>
-              ),
-            }}
-            sx={{ mr: 1 }}
-          />
-        </Box>
+
+        {wishlistLink && (
+          <Box display="flex" alignItems="center" mb={2}>
+            <TextField
+              value={wishlistLink}
+              size="small"
+              fullWidth
+              InputProps={{
+                readOnly: true,
+                endAdornment: (
+                  <IconButton
+                    onClick={() => {
+                      navigator.clipboard.writeText(wishlistLink);
+                      toast.success("Link copied to clipboard!");
+                    }}
+                  >
+                    <ContentCopy fontSize="small" />
+                  </IconButton>
+                ),
+              }}
+              sx={{ mr: 1 }}
+            />
+          </Box>
+        )}
+
         <Typography variant="body1" color="text.secondary">
           {wishlist.length} {wishlist.length === 1 ? "item" : "items"} in your
           wishlist
@@ -261,7 +256,8 @@ const WishlistPage = () => {
                       sx={{
                         background: "linear-gradient(135deg, #0ea5e9, #d946ef)",
                         "&:hover": {
-                          background: "linear-gradient(135deg, #0284c7, #c026d3)",
+                          background:
+                            "linear-gradient(135deg, #0284c7, #c026d3)",
                         },
                       }}
                     >
