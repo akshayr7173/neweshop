@@ -24,6 +24,8 @@ import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
+import GoogleSignInButton from "../components/GoogleSignInButton";
+
 const LoginContainer = styled(Container)(({ theme }) => ({
   minHeight: '100vh',
   display: 'flex',
@@ -197,9 +199,13 @@ export default function Login() {
           </Box>
         </Box>
 
+        <Box sx={{ mb: 3 }}>
+          <GoogleSignInButton variant="signin" />
+        </Box>
+
         <Divider sx={{ my: 3 }}>
           <Typography variant="body2" color="text.secondary">
-            or
+            or continue with email
           </Typography>
         </Divider>
 

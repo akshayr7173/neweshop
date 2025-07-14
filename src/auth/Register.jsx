@@ -26,6 +26,8 @@ import {
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
 
+import GoogleSignInButton from "../components/GoogleSignInButton";
+
 const RegisterContainer = styled(Container)(({ theme }) => ({
   minHeight: '100vh',
   display: 'flex',
@@ -176,6 +178,10 @@ export default function Register() {
             Create your account to start shopping
           </Typography>
         </LogoSection>
+
+        <Box sx={{ mb: 3 }}>
+          <GoogleSignInButton variant="signup" />
+        </Box>
 
         {error && (
           <Alert severity="error" sx={{ mb: 2, borderRadius: '12px' }}>
@@ -328,7 +334,7 @@ export default function Register() {
 
         <Divider sx={{ my: 3 }}>
           <Typography variant="body2" color="text.secondary">
-            or
+            or create account with email
           </Typography>
         </Divider>
 
