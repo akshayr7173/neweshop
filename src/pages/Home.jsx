@@ -25,6 +25,8 @@ import {
   ChevronRight,
   Timer,
 } from "@mui/icons-material";
+import SuggestedProducts from "../components/SuggestedProducts";
+import api from "../api/axios";
 
 // Banner Images
 import banner1 from "../assets/banner1.jpeg";
@@ -202,6 +204,7 @@ const Home = () => {
   });
 
   const BASE_URL = "https://localhost:7040";
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     fetchFlashProducts();
@@ -330,6 +333,28 @@ const Home = () => {
     }
   };
 
+  // Track search activity
+  const trackSearch = async (query, category = null) => {
+    try {
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      await api.post('/auth/track-search', {
+        searchQuery: query,
+        category,
+        actionType: 'search'
+      }, { headers });
+    } catch (error) {
+      console.error('Failed to track search:', error);
+    }
+  };
+
+  // Enhanced category change handler
+  const handleCategoryChange = (category) => {
+    setSelectedCategory(category);
+    if (category) {
+      trackSearch(`category:${category}`, category);
+    }
+  };
+
   const sliderImages = [banner1, banner2, banner3];
 
   const sliderSettings = {
@@ -381,6 +406,9 @@ const Home = () => {
           ))}
         </Slider>
       </HeroSection>
+
+      {/* Suggested Products */}
+      <SuggestedProducts />
 
       {/* Flash Sale */}
       {flashProducts.length > 0 && (
@@ -497,7 +525,7 @@ const Home = () => {
             </Typography>
             <StyledSelect
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
+              onChange={(e) => handleCategoryChange(e.target.value)}
               displayEmpty
               size="small"
               sx={{ minWidth: 200 }}

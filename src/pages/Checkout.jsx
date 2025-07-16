@@ -25,6 +25,8 @@ import {
   Receipt,
   ShoppingCartCheckout,
   Download,
+  CalendarToday,
+  Schedule,
 } from "@mui/icons-material";
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
@@ -92,6 +94,8 @@ const Checkout = () => {
   const [total, setTotal] = useState(0);
   const [address, setAddress] = useState("");
   const [paymentMode, setPaymentMode] = useState("cod");
+  const [deliveryDate, setDeliveryDate] = useState("");
+  const [deliveryTimeSlot, setDeliveryTimeSlot] = useState("");
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState("");
@@ -103,9 +107,48 @@ const Checkout = () => {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
+  // Generate available delivery dates (next 7 days, excluding today)
+  const getAvailableDeliveryDates = () => {
+    const dates = [];
+    const today = new Date();
+    
+    for (let i = 1; i <= 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      
+      // Skip Sundays (0 = Sunday)
+      if (date.getDay() !== 0) {
+        dates.push({
+          value: date.toISOString().split('T')[0],
+          label: date.toLocaleDateString('en-IN', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          }),
+          dayName: date.toLocaleDateString('en-IN', { weekday: 'short' })
+        });
+      }
+    }
+    return dates;
+  };
+
+  const deliveryTimeSlots = [
+    { value: '9-12', label: '9:00 AM - 12:00 PM' },
+    { value: '12-15', label: '12:00 PM - 3:00 PM' },
+    { value: '15-18', label: '3:00 PM - 6:00 PM' },
+    { value: '18-21', label: '6:00 PM - 9:00 PM' }
+  ];
+
   useEffect(() => {
     loadCart();
     loadCoupons();
+    
+    // Set default delivery date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    setDeliveryDate(tomorrow.toISOString().split('T')[0]);
+    setDeliveryTimeSlot('9-12');
   }, []);
 
   useEffect(() => {
@@ -191,6 +234,16 @@ const Checkout = () => {
       return;
     }
 
+    if (!deliveryDate) {
+      setError("Please select a delivery date!");
+      return;
+    }
+
+    if (!deliveryTimeSlot) {
+      setError("Please select a delivery time slot!");
+      return;
+    }
+
     try {
       setProcessing(true);
       setError("");
@@ -198,6 +251,8 @@ const Checkout = () => {
       const orderDetails = {
         address: address.trim(),
         paymentMode,
+        deliveryDate,
+        deliveryTimeSlot,
         couponCode: appliedCoupon?.code || null,
       };
 
@@ -333,6 +388,116 @@ const Checkout = () => {
               placeholder="Enter your complete delivery address..."
               required
             />
+          </CheckoutPaper>
+
+          {/* Delivery Date & Time Selection */}
+          <CheckoutPaper sx={{ mb: 3 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+              <CalendarToday sx={{ mr: 1, verticalAlign: 'middle' }} />
+              Delivery Schedule
+            </Typography>
+            
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                  Select Delivery Date
+                </Typography>
+                <FormControl fullWidth>
+                  <RadioGroup
+                    value={deliveryDate}
+                    onChange={(e) => setDeliveryDate(e.target.value)}
+                  >
+                    {getAvailableDeliveryDates().map((date) => (
+                      <FormControlLabel
+                        key={date.value}
+                        value={date.value}
+                        control={<Radio />}
+                        label={
+                          <Box>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              {date.dayName} - {date.label.split(',')[1]}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {date.value === new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0] 
+                                ? 'Tomorrow' 
+                                : 'Standard Delivery'
+                              }
+                            </Typography>
+                          </Box>
+                        }
+                        sx={{ 
+                          border: '1px solid',
+                          borderColor: deliveryDate === date.value ? 'primary.main' : 'divider',
+                          borderRadius: '8px',
+                          mb: 1,
+                          mx: 0,
+                          px: 2,
+                          py: 1,
+                          '&:hover': {
+                            backgroundColor: 'action.hover'
+                          }
+                        }}
+                      />
+                    ))}
+                  </RadioGroup>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                  <Schedule sx={{ mr: 0.5, fontSize: '1rem', verticalAlign: 'middle' }} />
+                  Select Time Slot
+                </Typography>
+                <FormControl fullWidth>
+                  <RadioGroup
+                    value={deliveryTimeSlot}
+                    onChange={(e) => setDeliveryTimeSlot(e.target.value)}
+                  >
+                    {deliveryTimeSlots.map((slot) => (
+                      <FormControlLabel
+                        key={slot.value}
+                        value={slot.value}
+                        control={<Radio />}
+                        label={slot.label}
+                        sx={{ 
+                          border: '1px solid',
+                          borderColor: deliveryTimeSlot === slot.value ? 'primary.main' : 'divider',
+                          borderRadius: '8px',
+                          mb: 1,
+                          mx: 0,
+                          px: 2,
+                          py: 1,
+                          '&:hover': {
+                            backgroundColor: 'action.hover'
+                          }
+                        }}
+                      />
+                    ))}
+                  </RadioGroup>
+                </FormControl>
+              </Grid>
+            </Grid>
+
+            <Box sx={{ 
+              mt: 2, 
+              p: 2, 
+              backgroundColor: 'info.main', 
+              color: 'info.contrastText',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center'
+            }}>
+              <CalendarToday sx={{ mr: 1, fontSize: '1rem' }} />
+              <Typography variant="body2">
+                <strong>Selected:</strong> {deliveryDate && deliveryTimeSlot ? (
+                  <>
+                    {getAvailableDeliveryDates().find(d => d.value === deliveryDate)?.label} 
+                    {' between '}
+                    {deliveryTimeSlots.find(s => s.value === deliveryTimeSlot)?.label}
+                  </>
+                ) : 'Please select date and time'}
+              </Typography>
+            </Box>
           </CheckoutPaper>
 
           {/* Payment Method */}

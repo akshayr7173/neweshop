@@ -255,6 +255,17 @@ const Orders = () => {
                 <Typography variant="body2" color="text.secondary">
                   <strong>Delivery Address:</strong> {order.address}
                 </Typography>
+                {order.deliveryDate && (
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>Delivery Date:</strong> {new Date(order.deliveryDate).toLocaleDateString('en-IN', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                    {order.deliveryTimeSlot && ` (${order.deliveryTimeSlot.replace('-', ':00 - ')}:00)`}
+                  </Typography>
+                )}
               </Box>
               
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
