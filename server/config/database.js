@@ -167,6 +167,31 @@ const createTables = async () => {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
 
+    // Search activity table for recommendations
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS search_activity (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NULL,
+        search_query VARCHAR(255) NOT NULL,
+        category VARCHAR(100) NULL,
+        product_id INT NULL,
+        action_type ENUM('search', 'view', 'click') DEFAULT 'search',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL,
+        INDEX idx_user_id (user_id),
+        INDEX idx_search_query (search_query),
+        INDEX idx_category (category),
+        INDEX idx_created_at (created_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    // Add delivery_date column to orders table
+    await connection.execute(`
+      ALTER TABLE orders 
+      ADD COLUMN IF NOT EXISTS delivery_date DATE NULL,
+      ADD COLUMN IF NOT EXISTS delivery_time_slot VARCHAR(50) NULL
+    `);
     connection.release();
     console.log('Database tables created successfully');
 
