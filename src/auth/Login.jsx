@@ -31,65 +31,79 @@ const LoginContainer = styled(Container)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #fdf4ff 100%)',
-  padding: theme.spacing(2),
+  background: 'linear-gradient(135deg, #f9fafb 0%, #f3f4f6 50%, #f0f9ff 100%)',
+  padding: '2rem',
 }));
 
 const LoginPaper = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(4),
-  borderRadius: '24px',
-  border: '1px solid rgba(0, 0, 0, 0.08)',
-  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
+  padding: '3rem',
+  borderRadius: '32px',
+  border: '1px solid #e5e7eb',
+  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
   backdropFilter: 'blur(20px)',
-  background: 'rgba(255, 255, 255, 0.95)',
+  background: 'white',
   width: '100%',
-  maxWidth: '400px',
+  maxWidth: '480px',
 }));
 
 const LogoSection = styled(Box)(({ theme }) => ({
   textAlign: 'center',
-  marginBottom: theme.spacing(3),
+  marginBottom: '2.5rem',
 }));
 
 const LogoText = styled(Typography)(({ theme }) => ({
-  background: 'linear-gradient(135deg, #0ea5e9, #d946ef)',
+  background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
   WebkitBackgroundClip: 'text',
   WebkitTextFillColor: 'transparent',
   backgroundClip: 'text',
-  fontWeight: 700,
-  fontSize: '2rem',
-  marginBottom: theme.spacing(1),
+  fontWeight: 800,
+  fontSize: '2.5rem',
+  marginBottom: '0.5rem',
+  letterSpacing: '-0.025em',
 }));
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
-    borderRadius: '12px',
+    borderRadius: '16px',
+    backgroundColor: '#f9fafb',
+    border: '1px solid #e5e7eb',
     transition: 'all 0.2s ease',
+    '& fieldset': {
+      border: 'none',
+    },
     '&:hover': {
-      '& .MuiOutlinedInput-notchedOutline': {
-        borderColor: theme.palette.primary.main,
-      }
+      backgroundColor: '#f3f4f6',
+      borderColor: '#d1d5db',
     },
     '&.Mui-focused': {
-      '& .MuiOutlinedInput-notchedOutline': {
-        borderWidth: '2px',
-      }
+      backgroundColor: 'white',
+      borderColor: '#3b82f6',
+      boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.1)',
     }
+  },
+  '& .MuiInputLabel-root': {
+    color: '#6b7280',
+    fontWeight: 500,
+  },
+  '& .MuiInputBase-input': {
+    padding: '16px 20px',
+    fontSize: '16px',
+    fontWeight: 500,
   }
 }));
 
 const LoginButton = styled(Button)(({ theme }) => ({
-  borderRadius: '12px',
+  borderRadius: '16px',
   textTransform: 'none',
-  fontWeight: 600,
-  padding: '12px 24px',
-  fontSize: '1rem',
-  background: 'linear-gradient(135deg, #0ea5e9, #d946ef)',
-  boxShadow: '0 4px 15px rgba(14, 165, 233, 0.3)',
+  fontWeight: 700,
+  padding: '16px 32px',
+  fontSize: '16px',
+  background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
   '&:hover': {
-    background: 'linear-gradient(135deg, #0284c7, #c026d3)',
-    transform: 'translateY(-2px)',
-    boxShadow: '0 8px 25px rgba(14, 165, 233, 0.4)',
+    background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+    transform: 'translateY(-1px)',
+    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
   }
 }));
 
@@ -126,23 +140,23 @@ export default function Login() {
     <LoginContainer maxWidth={false}>
       <LoginPaper elevation={0}>
         <LogoSection>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
-            <ShoppingBag sx={{ fontSize: '2rem', color: '#0ea5e9', mr: 1 }} />
-            <LogoText variant="h4">MyShop</LogoText>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+            <ShoppingBag sx={{ fontSize: '3rem', color: '#3b82f6', mr: 1.5 }} />
+            <LogoText>MyShop</LogoText>
           </Box>
-          <Typography variant="body1" color="text.secondary">
+          <Typography variant="h6" sx={{ color: '#6b7280', fontWeight: 500, fontSize: '18px' }}>
             Welcome back! Please sign in to your account
           </Typography>
         </LogoSection>
 
         {error && (
-          <Alert severity="error" sx={{ mb: 2, borderRadius: '12px' }}>
+          <Alert severity="error" sx={{ mb: 3, borderRadius: '16px', fontSize: '14px' }}>
             {error}
           </Alert>
         )}
 
         <Box component="form" onSubmit={handleSubmit}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <StyledTextField
               label="Email Address"
               name="email"
@@ -154,7 +168,7 @@ export default function Login() {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <Email sx={{ color: 'text.secondary' }} />
+                    <Email sx={{ color: '#9ca3af', fontSize: '20px' }} />
                   </InputAdornment>
                 ),
               }}
@@ -171,7 +185,7 @@ export default function Login() {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <Lock sx={{ color: 'text.secondary' }} />
+                    <Lock sx={{ color: '#9ca3af', fontSize: '20px' }} />
                   </InputAdornment>
                 ),
                 endAdornment: (
@@ -192,7 +206,7 @@ export default function Login() {
               variant="contained"
               fullWidth
               disabled={loading}
-              sx={{ mt: 1 }}
+              sx={{ mt: 2 }}
             >
               {loading ? 'Signing In...' : 'Sign In'}
             </LoginButton>
@@ -203,22 +217,23 @@ export default function Login() {
           <GoogleSignInButton variant="signin" />
         </Box>
 
-        <Divider sx={{ my: 3 }}>
-          <Typography variant="body2" color="text.secondary">
+        <Divider sx={{ my: 4 }}>
+          <Typography variant="body2" sx={{ color: '#9ca3af', fontSize: '14px' }}>
             or continue with email
           </Typography>
         </Divider>
 
         <Box sx={{ textAlign: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" sx={{ color: '#6b7280', fontSize: '15px' }}>
             Don't have an account?{" "}
             <Link 
               onClick={() => navigate("/register")} 
               sx={{ 
                 cursor: "pointer",
-                color: 'primary.main',
-                fontWeight: 600,
+                color: '#3b82f6',
+                fontWeight: 700,
                 textDecoration: 'none',
+                fontSize: '15px',
                 '&:hover': {
                   textDecoration: 'underline',
                 }

@@ -25,22 +25,17 @@ const StyledCard = styled(Card)(({ theme }) => ({
   height: "100%",
   display: "flex",
   flexDirection: "column",
-  borderRadius: "16px",
-  border: `1px solid ${theme.palette.divider}`,
-  boxShadow:
-    theme.palette.mode === "dark"
-      ? "0 2px 8px rgba(0, 0, 0, 0.3)"
-      : "0 2px 8px rgba(0, 0, 0, 0.04)",
+  borderRadius: "20px",
+  border: "1px solid #e5e7eb",
+  boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
   transition: "all 0.3s ease",
   overflow: "hidden",
   position: "relative",
-  backgroundColor: theme.palette.background.paper,
+  backgroundColor: "white",
   "&:hover": {
-    transform: "translateY(-8px)",
-    boxShadow:
-      theme.palette.mode === "dark"
-        ? "0 20px 40px rgba(0, 0, 0, 0.4)"
-        : "0 20px 40px rgba(0, 0, 0, 0.12)",
+    transform: "translateY(-4px)",
+    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+    borderColor: "#d1d5db",
     "& .product-image": {
       transform: "scale(1.05)",
     },
@@ -52,7 +47,7 @@ const StyledCard = styled(Card)(({ theme }) => ({
 }));
 
 const ProductImage = styled(CardMedia)({
-  height: 200,
+  height: 220,
   objectFit: "cover",
   transition: "transform 0.3s ease",
   cursor: "pointer",
@@ -60,7 +55,7 @@ const ProductImage = styled(CardMedia)({
 
 const QuickActions = styled(Box)({
   position: "absolute",
-  top: 12,
+  top: 16,
   right: 12,
   display: "flex",
   flexDirection: "column",
@@ -71,21 +66,16 @@ const QuickActions = styled(Box)({
 });
 
 const ActionButton = styled(IconButton)(({ theme }) => ({
-  backgroundColor:
-    theme.palette.mode === "dark"
-      ? "rgba(26, 26, 26, 0.9)"
-      : "rgba(255, 255, 255, 0.9)",
+  backgroundColor: "rgba(255, 255, 255, 0.95)",
   backdropFilter: "blur(10px)",
-  width: 40,
-  height: 40,
-  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-  color: theme.palette.text.primary,
+  width: 44,
+  height: 44,
+  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+  color: "#374151",
   "&:hover": {
-    backgroundColor:
-      theme.palette.mode === "dark"
-        ? "rgba(26, 26, 26, 1)"
-        : "rgba(255, 255, 255, 1)",
+    backgroundColor: "white",
     transform: "scale(1.1)",
+    color: "#3b82f6",
   },
 }));
 
@@ -97,46 +87,47 @@ const PriceBox = styled(Box)({
 });
 
 const CurrentPrice = styled(Typography)(({ theme }) => ({
-  fontSize: "1.25rem",
+  fontSize: "1.375rem",
   fontWeight: 700,
-  color: theme.palette.primary.main,
+  color: "#3b82f6",
 }));
 
 const OriginalPrice = styled(Typography)(({ theme }) => ({
-  fontSize: "0.9rem",
-  color: theme.palette.text.secondary,
+  fontSize: "1rem",
+  color: "#9ca3af",
   textDecoration: "line-through",
 }));
 
 const DiscountChip = styled(Chip)(({ theme }) => ({
-  backgroundColor: theme.palette.success.main,
+  backgroundColor: "#10b981",
   color: "white",
-  fontSize: "0.75rem",
+  fontSize: "0.8125rem",
   height: 24,
   fontWeight: 600,
 }));
 
 const OutOfStockChip = styled(Chip)(({ theme }) => ({
-  backgroundColor: theme.palette.error.main,
+  backgroundColor: "#ef4444",
   color: "white",
-  fontSize: "0.75rem",
+  fontSize: "0.8125rem",
   height: 24,
   fontWeight: 600,
 }));
 
 const BuyButton = styled(Button)({
-  borderRadius: "10px",
+  borderRadius: "12px",
   textTransform: "none",
   fontWeight: 600,
-  padding: "10px 20px",
-  background: "linear-gradient(135deg, #0ea5e9, #d946ef)",
+  padding: "12px 24px",
+  background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
+  fontSize: "14px",
   "&:hover": {
-    background: "linear-gradient(135deg, #0284c7, #c026d3)",
+    background: "linear-gradient(135deg, #2563eb, #7c3aed)",
     transform: "translateY(-1px)",
-    boxShadow: "0 6px 20px rgba(14, 165, 233, 0.4)",
+    boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
   },
   "&:disabled": {
-    background: "#e5e7eb",
+    background: "#f3f4f6",
     color: "#9ca3af",
     transform: "none",
     boxShadow: "none",
@@ -144,20 +135,21 @@ const BuyButton = styled(Button)({
 });
 
 const AddToCartButton = styled(Button)(({ theme }) => ({
-  borderRadius: "10px",
+  borderRadius: "12px",
   textTransform: "none",
-  fontWeight: 500,
-  padding: "10px 20px",
-  borderColor: theme.palette.primary.main,
-  color: theme.palette.primary.main,
+  fontWeight: 600,
+  padding: "12px 24px",
+  borderColor: "#3b82f6",
+  color: "#3b82f6",
+  fontSize: "14px",
   "&:hover": {
-    backgroundColor: theme.palette.primary.main,
+    backgroundColor: "#3b82f6",
     color: "white",
     transform: "translateY(-1px)",
-    boxShadow: "0 6px 20px rgba(14, 165, 233, 0.3)",
+    boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
   },
   "&:disabled": {
-    borderColor: "#e5e7eb",
+    borderColor: "#f3f4f6",
     color: "#9ca3af",
     transform: "none",
     boxShadow: "none",
@@ -350,32 +342,32 @@ const ProductCard = ({ product }) => {
         ) : null}
       </Box>
 
-      <CardContent sx={{ flexGrow: 1, p: 2 }}>
+      <CardContent sx={{ flexGrow: 1, p: 3 }}>
         <Typography
           variant="h6"
           sx={{
-            fontSize: "1rem",
+            fontSize: "1.125rem",
             fontWeight: 600,
-            mb: 1,
+            mb: 1.5,
             overflow: "hidden",
             textOverflow: "ellipsis",
             display: "-webkit-box",
             WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical",
-            lineHeight: 1.4,
+            lineHeight: 1.5,
             cursor: "pointer",
-            color: "text.primary",
+            color: "#1f2937",
           }}
           onClick={() => navigate(`/product/${product.id}`)}
         >
           {product.title || product.name}
         </Typography>
 
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", mb: 1.5 }}>
           <Rating value={4.2} precision={0.1} size="small" readOnly />
           <Typography
-            variant="caption"
-            sx={{ ml: 1, color: "text.secondary" }}
+            variant="body2"
+            sx={{ ml: 1, color: "#6b7280", fontSize: "0.8125rem", fontWeight: 500 }}
           >
             (4.2)
           </Typography>
@@ -394,25 +386,37 @@ const ProductCard = ({ product }) => {
               label={product.category}
               size="small"
               variant="outlined"
-              sx={{ fontSize: "0.75rem" }}
+              sx={{ fontSize: "0.75rem", fontWeight: 500, borderColor: "#d1d5db", color: "#6b7280" }}
             />
           )}
           {product.quantity !== undefined && (
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant="caption" sx={{ color: "#9ca3af", fontWeight: 500 }}>
               Stock: {product.quantity}
             </Typography>
           )}
         </Box>
       </CardContent>
 
-      <CardActions sx={{ p: 2, pt: 0, gap: 1 }}>
+      <CardActions sx={{ p: 3, pt: 0, gap: 1.5 }}>
         {isOutOfStock ? (
           <Button
             variant="outlined"
             startIcon={<FavoriteBorderIcon />}
             onClick={handleWishlistToggle}
             fullWidth
-            sx={{ borderRadius: "10px", textTransform: "none", fontWeight: 500 }}
+            sx={{ 
+              borderRadius: "12px", 
+              textTransform: "none", 
+              fontWeight: 600,
+              padding: "12px 24px",
+              fontSize: "14px",
+              borderColor: "#d1d5db",
+              color: "#6b7280",
+              "&:hover": {
+                borderColor: "#9ca3af",
+                backgroundColor: "#f9fafb"
+              }
+            }}
           >
             Add to Wishlist
           </Button>
